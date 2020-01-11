@@ -1,2 +1,7 @@
 #!/bin/bash
-aws s3 cp dist s3://web3.cryptoraves.space --recursive
+APPPATH=$(dirname "$(realpath $0)")
+BRANCH=$(git --git-dir=${APPPATH}/.git branch | grep \* | cut -d ' ' -f2)
+
+if [[ "${BRANCH}" == "master" ]]; then
+	aws s3 cp dist s3://web3.cryptoraves.space --recursive
+fi
