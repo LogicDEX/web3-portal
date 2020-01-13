@@ -10,12 +10,12 @@
     </div>
     <v-layout row>
       <v-flex>
-        <nuxt-link to="/mapping?iwantto=withdraw"> Withdraw Tokens</nuxt-link>
+        <nuxt-link to="/mapping/?iWantTo=withdraw"> Withdraw Tokens</nuxt-link>
       </v-flex>
     </v-layout>
     <v-layout row>
       <v-flex>
-        <nuxt-link to="/mapping?iwantto=deposit">Deposit Tokens</nuxt-link>
+        <nuxt-link to="/mapping/?iWantTo=deposit">Deposit Tokens</nuxt-link>
       </v-flex>
     </v-layout>
   </v-container>

@@ -116,7 +116,7 @@ export default {
   },
 
   async mounted() {
-    console.log(this.$route.params.iwantto)
+    alert(this.$route.query.iWantTo)
     await this.initWeb3()
     await this.initLoom()
     //await this.initContracts()
@@ -157,6 +157,10 @@ export default {
         'Step 1: Sign the next transaction to link your wallet to Cryptoraves'
       )
       try {
+        const mapper = await AddressMapper.createAsync(
+          this.loomClient,
+          loomWalletAddr
+        )
         await mapper.addIdentityMappingAsync(
           ethereumAddress,
           loomWalletAddr,
