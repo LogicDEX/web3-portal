@@ -1,0 +1,2 @@
+#!/bin/bash
+aws s3 cp dist s3://yourdomain.com --recursiveweb3.cryptoraves.space

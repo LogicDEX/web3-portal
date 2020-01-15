@@ -1,15 +1,19 @@
 <template lang="html">
-  <v-container
-    v-if="ready"
-    grid-list-md
-    text-xs-center
-  >
-    <!--<select v-model="tickers">
-      <option 
-        v-for="ticker in tickers">
-        {{ tickers }}
-      </option>
-    </select>-->
+  <v-container fluid>
+    <v-select
+      id="tickerSelector"
+      v-model="ticker"
+      :items="tickers"
+      label="Ticker To Export:"
+      @change="tickerSelect"
+    >Ticker
+    </v-select>
+    <div class="portfolio-userimg">
+      <img
+        :src="TOKEN_IMAGE_URL"
+        :title="ticker"
+      >
+    </div>
     <v-layout
       row
       pb-5
@@ -103,7 +107,10 @@ import { AddressMapper } from 'loom-js/dist/contracts'
 export default {
   data() {
     return {
-      tickers: {},
+      TOKEN_IMAGE_URL: '',
+      tickers: [],
+      balances: [],
+      ticker: null,
       live: false,
       ready: false,
       hasAccountMapping: null,
@@ -126,12 +133,13 @@ export default {
 
   async mounted() {
     await this.initWeb3()
+    await this.loadWebData()
     await this.initLoom()
     await this.initContracts()
     //await this.mapAddresses()
     await this.addEventListeners()
     await this.updateBalances()
-    await this.loadTickers()
+    this.ready = true
     //await this.checkContractMapping()
   },
 
@@ -194,13 +202,13 @@ export default {
         ownerLoomAddr
       )
       const foreignContract = Address.fromString(
-        `eth:${this.$store.state.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
+        `eth:${this.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
       )
       var res = await gatewayContract.getContractMappingAsync(foreignContract)
       if (res) {
         alert(
           'Mapped! Ethereum Contract: ' +
-            this.$store.state.ETHEREUM_CONTRACT_ADDR +
+            this.ETHEREUM_CONTRACT_ADDR +
             ' is mapped to ' +
             res.to.toString() +
             ' with status pending: ' +
@@ -209,7 +217,7 @@ export default {
       } else {
         alert(
           'Ethereum Contract: ' +
-            this.$store.state.ETHEREUM_CONTRACT_ADDR +
+            this.ETHEREUM_CONTRACT_ADDR +
             ' is not mapped.'
         )
       }
@@ -280,7 +288,7 @@ export default {
       }
       this.loomClient = client
 
-      this.ready = await this.manageAccountMapping()
+      await this.manageAccountMapping()
     },
     async initContracts() {
       const tokenABI = [
@@ -290,12 +298,12 @@ export default {
         'event Transfer(address indexed from, address indexed to, uint256 value)'
       ]
       this.ethereumToken = new ethers.Contract(
-        this.$store.state.ETHEREUM_CONTRACT_ADDR,
+        this.ETHEREUM_CONTRACT_ADDR,
         tokenABI,
         this.ethereumProvider.getSigner()
       )
       this.loomToken = new ethers.Contract(
-        this.$store.state.LOOM_CONTRACT_ADDR,
+        this.LOOM_CONTRACT_ADDR,
         tokenABI,
         this.loomProvider.getSigner()
       )
@@ -308,18 +316,43 @@ export default {
         loomAddress
       )
     },
-    async loadTickers() {
-      var tickerlistUrl =
-        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=getTickerList'
+    async loadWebData() {
+      var webDataUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=getweb3PortalData&ethAddress=' +
+        this.ethereumAddress
       axios
-        .get(tickerlistUrl)
+        .get(webDataUrl)
         .then(response => {
+          let res = response.data
           // JSON responses are automatically parsed.
-          this.tickers = response.data
+          this.user = res.user
+          this.balances = res.balances
+          this.tickers = res.tickers
+          if (this.tickers) {
+            this.ticker = this.tickers[0]
+            this.tickerSelect()
+          }
         })
         .catch(e => {
-          console.log(e)
+          throw new Error(e)
         })
+    },
+    async tickerSelect() {
+      for (var i = 0; i < this.tickers.length; i++) {
+        if (this.balances[i].ticker == this.ticker) {
+          this.ETHEREUM_CONTRACT_ADDR = this.balances[i].ethContractAddress
+          this.ETHEREUM_CONTRACT_OWNER_ADDR = this.balances[
+            i
+          ].ethContractOwnerAddress
+          this.LOOM_CONTRACT_ADDR = this.balances[i].loomContractAddress
+          this.NUM_DECIMALS = this.balances[i].decimals
+          this.TOTAL_SUPPLY = this.balances[i].totalSupply
+          this.TOKEN_IMAGE_URL = this.balances[i].tokenImgUrl
+          if (this.ready) {
+            await this.updateBalances()
+          }
+        }
+      }
     },
     //added fucntions
     /*async mapContracts() {
@@ -331,14 +364,14 @@ export default {
         ownerExtdevAddr
       ) //const gatewayContract = await TransferGateway.createAsync(client,ownerExtdevAddr)
       const foreignContract = Address.fromString(
-        `eth:${this.$store.state.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
+        `eth:${this.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
       )
       const localContract = Address.fromString(
-        `${this.loomClient.chainId}:${this.$store.state.LOOM_CONTRACT_ADDR}` //`${client.chainId}:${tokenExtdevAddress}`
+        `${this.loomClient.chainId}:${this.LOOM_CONTRACT_ADDR}` //`${client.chainId}:${tokenExtdevAddress}`
       )
       const hash = soliditySha3(
-        { type: 'address', value: this.$store.state.ETHEREUM_CONTRACT_ADDR.slice(2) },
-        { type: 'address', value: this.$store.state.LOOM_CONTRACT_ADDR.slice(2) }
+        { type: 'address', value: this.ETHEREUM_CONTRACT_ADDR.slice(2) },
+        { type: 'address', value: this.LOOM_CONTRACT_ADDR.slice(2) }
       )
       const foreignContractCreatorTxHash = Buffer.from(
         this.$store.state.ETHEREUM_CONTRACT_TXN_HASH.slice(2), //rinkebyTxHash.slice(2),
@@ -358,11 +391,11 @@ export default {
       const hash = soliditySha3(
         {
           type: 'address',
-          value: this.$store.state.ETHEREUM_CONTRACT_ADDR.slice(2)
+          value: this.ETHEREUM_CONTRACT_ADDR.slice(2)
         },
         {
           type: 'address',
-          value: this.$store.state.LOOM_CONTRACT_ADDR.slice(2)
+          value: this.LOOM_CONTRACT_ADDR.slice(2)
         }
       )
       var signer = new EthersSigner(this.ethereumProvider.getSigner())
@@ -377,7 +410,7 @@ export default {
           'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=web3portal&hash=' +
             signatureString +
             '&ethContractOwnerAddress=' +
-            this.$store.state.ETH_WALLET_CONTRACT_OWNER_ADDRESS
+            this.ETHEREUM_CONTRACT_OWNER_ADDR
         )
         .then(response => {
           // JSON responses are automatically parsed.
@@ -468,14 +501,14 @@ export default {
       )
       this.ethereumBalance = ethers.utils.formatUnits(
         ethereumBalance.toString(),
-        this.$store.state.NUM_DECIMALS
+        this.NUM_DECIMALS
       )
       const loomBalance = await this.loomToken.balanceOf(this.loomWalletAddr, {
         from: this.loomWalletAddr
       })
       this.loomBalance = ethers.utils.formatUnits(
         loomBalance.toString(),
-        this.$store.state.NUM_DECIMALS
+        this.NUM_DECIMALS
       )
     },
     async deposit() {
@@ -484,7 +517,7 @@ export default {
       const weiAmount = ethers.utils.parseUnits(
         //this.ethereumBalance,
         '1000000',
-        this.$store.state.NUM_DECIMALS
+        this.NUM_DECIMALS
       )
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
@@ -493,7 +526,7 @@ export default {
       )
       res = await this.ethereumGateway.contract.depositERC20(
         weiAmount,
-        this.$store.state.ETHEREUM_CONTRACT_ADDR
+        this.ETHEREUM_CONTRACT_ADDR
       )
       this.busy = false
     },
@@ -505,7 +538,7 @@ export default {
         Contracts.TransferGateway.EVENT_TOKEN_WITHDRAWAL,
         async event => {
           const tokenEthAddr = Address.fromString(
-            `eth:${this.$store.state.ETHEREUM_CONTRACT_ADDR}`
+            `eth:${this.ETHEREUM_CONTRACT_ADDR}`
           )
           const ownerRinkebyAddr = Address.fromString(
             `eth:${this.ethereumAddress}`
@@ -520,7 +553,7 @@ export default {
                 .parseUnits(this.loomBalance, NUM_DECIMALS)
                 .toString(),
               event.sig,
-              this.$store.state.ETHEREUM_CONTRACT_ADDR
+              this.ETHEREUM_CONTRACT_ADDR
             )
             console.log(res)
             this.busy = false
@@ -531,7 +564,7 @@ export default {
       const gwAddress = this.loomGateway.address.local.toString()
       console.log(gwAddress)
       const tokenAddress = Address.fromString(
-        `${this.loomClient.chainId}:${this.$store.state.LOOM_CONTRACT_ADDR}`
+        `${this.loomClient.chainId}:${this.LOOM_CONTRACT_ADDR}`
       )
       const weiAmount = ethers.utils
         .parseUnits(this.loomBalance, NUM_DECIMALS)
