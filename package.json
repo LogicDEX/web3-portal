@@ -1,7 +1,7 @@
 {
-  "name": "loom-payments",
+  "name": "web3-cryptoraves",
   "version": "1.0.0",
-  "description": "Loom Stablecoin Integration Demo",
+  "description": "Cryptoraves Web3 Portal",
   "author": "Ed Zynda",
   "private": true,
   "scripts": {

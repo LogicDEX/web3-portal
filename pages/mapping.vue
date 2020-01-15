@@ -4,17 +4,18 @@
     grid-list-md
     text-xs-center
   >
-    <div 
-      class="display-2"
-    >
-      Web3 Portal
-      
-    </div>
+    <!--<select v-model="tickers">
+      <option 
+        v-for="ticker in tickers">
+        {{ tickers }}
+      </option>
+    </select>-->
     <v-layout
       row
       pb-5
     >
-      <v-flex> <!-- xs6> -->
+
+      <v-flex xs6>
         <v-card>
           <v-card-title>
             <span 
@@ -60,6 +61,12 @@
     <v-layout row>
       <v-flex>
         <v-btn
+          :disabled="busy"
+          @click="checkContractMapping"
+        >
+          Check Contract Mapping
+        </v-btn>
+        <v-btn
           v-if="hasAccountMapping"
           :disabled="busy"
           @click="deposit"
@@ -96,6 +103,7 @@ import { AddressMapper } from 'loom-js/dist/contracts'
 export default {
   data() {
     return {
+      tickers: {},
       live: false,
       ready: false,
       hasAccountMapping: null,
@@ -111,18 +119,19 @@ export default {
       loomWalletAddr: null,
       loomBalance: 0,
       busy: false,
-      hasContractMapping: false
+      hasContractMapping: false,
+      eth2loomGatewayAddress: null
     }
   },
 
   async mounted() {
-    alert(this.$route.query.iWantTo)
     await this.initWeb3()
     await this.initLoom()
-    //await this.initContracts()
+    await this.initContracts()
     //await this.mapAddresses()
-    //await this.addEventListeners()
-    //await this.updateBalances()
+    await this.addEventListeners()
+    await this.updateBalances()
+    await this.loadTickers()
     //await this.checkContractMapping()
   },
 
@@ -174,6 +183,35 @@ export default {
         }
         this.loomClient.disconnect()
         return false
+      }
+    },
+    async checkContractMapping() {
+      const ownerLoomAddr = Address.fromString(
+        `${this.loomClient.chainId}:${this.loomWalletAddr}`
+      )
+      const gatewayContract = await Contracts.TransferGateway.createAsync(
+        this.loomClient,
+        ownerLoomAddr
+      )
+      const foreignContract = Address.fromString(
+        `eth:${this.$store.state.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
+      )
+      var res = await gatewayContract.getContractMappingAsync(foreignContract)
+      if (res) {
+        alert(
+          'Mapped! Ethereum Contract: ' +
+            this.$store.state.ETHEREUM_CONTRACT_ADDR +
+            ' is mapped to ' +
+            res.to.toString() +
+            ' with status pending: ' +
+            res.pending
+        )
+      } else {
+        alert(
+          'Ethereum Contract: ' +
+            this.$store.state.ETHEREUM_CONTRACT_ADDR +
+            ' is not mapped.'
+        )
       }
     },
     async checkAccountMapping(ethAddr, loomAddr) {
@@ -244,7 +282,45 @@ export default {
 
       this.ready = await this.manageAccountMapping()
     },
-
+    async initContracts() {
+      const tokenABI = [
+        'function balanceOf(address who) external view returns (uint256)',
+        'function approve(address spender, uint256 value) external returns (bool) @50000',
+        'function transfer(address to, uint256 value) external returns (bool) @30000',
+        'event Transfer(address indexed from, address indexed to, uint256 value)'
+      ]
+      this.ethereumToken = new ethers.Contract(
+        this.$store.state.ETHEREUM_CONTRACT_ADDR,
+        tokenABI,
+        this.ethereumProvider.getSigner()
+      )
+      this.loomToken = new ethers.Contract(
+        this.$store.state.LOOM_CONTRACT_ADDR,
+        tokenABI,
+        this.loomProvider.getSigner()
+      )
+      this.ethereumGateway = await this.getEthereumGatewayContract()
+      const loomAddress = Address.fromString(
+        `${this.loomClient.chainId}:${this.loomWalletAddr}`
+      )
+      this.loomGateway = await Contracts.TransferGateway.createAsync(
+        this.loomClient,
+        loomAddress
+      )
+    },
+    async loadTickers() {
+      var tickerlistUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=getTickerList'
+      axios
+        .get(tickerlistUrl)
+        .then(response => {
+          // JSON responses are automatically parsed.
+          this.tickers = response.data
+        })
+        .catch(e => {
+          console.log(e)
+        })
+    },
     //added fucntions
     /*async mapContracts() {
       const ownerExtdevAddr = Address.fromString(
@@ -317,36 +393,20 @@ export default {
           console.log(e)
         })
     },
-    async checkContractMapping() {
-      const ownerExtdevAddr = Address.fromString(
-        `${this.loomClient.chainId}:${
-          this.$store.state.LOOM_WALLET_CONTRACT_OWNER_ADDRESS
-        }` //`${client.chainId}:${ownerExtdevAddress}`
-      )
-      const gatewayContract = await Contracts.TransferGateway.createAsync(
-        this.loomClient,
-        ownerExtdevAddr
-      )
-      const foreignContract = Address.fromString(
-        `eth:${this.$store.state.ETHEREUM_CONTRACT_ADDR}`
-      )
-      var res = await gatewayContract.getContractMappingAsync(foreignContract)
-      if (res) {
-        if (!res.pending) {
-          this.hasContractMapping = true
-        }
-      }
-    },
     // Returns a new wrapper for the Ethereum Gateway contract
     async getEthereumGatewayContract() {
       const networkId = await this.web3js.eth.net.getId()
       let version
       switch (networkId) {
         case 1: // Ethereum Mainnet
+          this.eth2loomGatewayAddress =
+            '0xe080079ac12521d57573f39543e1725ea3e16dcc'
           version = 1
           break
 
         case 4: // Rinkeby
+          this.eth2loomGatewayAddress =
+            '0x9c67fD4eAF0497f9820A3FBf782f81D6b6dC4Baa'
           version = 2
           break
 
@@ -361,56 +421,25 @@ export default {
       */
       const ethereumGatewayContract = await createEthereumGatewayAsync(
         version,
-        this.$store.state.TRANSFER_GATEWAY_ADDR, // In this example, we're instantiating the Rinkeby transfer gateway
+        this.eth2loomGatewayAddress, // In this example, we're instantiating the Rinkeby transfer gateway
         this.ethereumProvider.getSigner()
       )
       return ethereumGatewayContract
     },
-    async initContracts() {
-      const tokenABI = [
-        'function balanceOf(address who) external view returns (uint256)',
-        'function approve(address spender, uint256 value) external returns (bool) @50000',
-        'function transfer(address to, uint256 value) external returns (bool) @30000',
-        'event Transfer(address indexed from, address indexed to, uint256 value)'
-      ]
-
-      const payABI = ['function pay(uint256 amount) external @50000']
-
-      this.ethereumToken = new ethers.Contract(
-        this.$store.state.ETHEREUM_CONTRACT_ADDR,
-        tokenABI,
-        this.ethereumProvider.getSigner()
-      )
-
-      this.loomToken = new ethers.Contract(
-        this.$store.state.LOOM_CONTRACT_ADDR,
-        tokenABI,
-        this.loomProvider.getSigner()
-      )
-      this.ethereumGateway = await this.getEthereumGatewayContract()
-      const loomAddress = Address.fromString(
-        `${this.loomClient.chainId}:${this.loomWalletAddr}`
-      )
-      this.loomGateway = await Contracts.TransferGateway.createAsync(
-        this.loomClient,
-        loomAddress
-      )
-    },
-
     async addEventListeners() {
-      let rinkebyReceiveFilter = this.ethereumToken.filters.Transfer(
+      let ethereumReceiveFilter = this.ethereumToken.filters.Transfer(
         null,
         this.ethereumAddress
       )
-      this.ethereumToken.on(rinkebyReceiveFilter, (from, to, value) => {
+      this.ethereumToken.on(ethereumReceiveFilter, (from, to, value) => {
         this.updateBalances()
       })
 
-      let rinkebySendFilter = this.ethereumToken.filters.Transfer(
+      let ethereumSendFilter = this.ethereumToken.filters.Transfer(
         this.ethereumAddress,
         null
       )
-      this.ethereumToken.on(rinkebySendFilter, (from, to, value) => {
+      this.ethereumToken.on(ethereumSendFilter, (from, to, value) => {
         this.updateBalances()
       })
 
@@ -454,12 +483,13 @@ export default {
 
       const weiAmount = ethers.utils.parseUnits(
         //this.ethereumBalance,
-        '1',
+        '1000000',
         this.$store.state.NUM_DECIMALS
       )
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
-        weiAmount.toString()
+        weiAmount.toString(),
+        { gasLimit: 300000 }
       )
       res = await this.ethereumGateway.contract.depositERC20(
         weiAmount,

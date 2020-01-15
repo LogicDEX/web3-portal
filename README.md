@@ -1,6 +1,6 @@
-# loom-payments
+# Cryptoraves Web3 Portal
 
-> Loom Stablecoin Integration Demo
+> Cryptoraves Web3 Portal
 
 ## Build Setup
 
