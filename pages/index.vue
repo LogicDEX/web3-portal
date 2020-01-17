@@ -1,5 +1,7 @@
 <template lang="html">
-  <v-container fluid>
+  <v-container 
+    v-if="ready"
+    fluid>
     <span 
       class="display-2"
     >
@@ -43,13 +45,13 @@
               v-if="live" 
               class="display-1"
             >
-              Your Cryptoraves Balance {{ ticker }}
+              Your Cryptoraves {{ ticker }} Balance
             </span>
             <span 
               v-else 
               class="display-1"
             >
-              Your Cryptoraves Balance {{ ticker }} - Extdev
+              Your Cryptoraves {{ ticker }} Balance - Extdev
             </span>
             <v-card-text 
               class="address-link subheading"
@@ -66,13 +68,13 @@
               v-if="live" 
               class="display-1"
             >
-              Your Wallet Balance {{ ticker }}
+              Your Wallet {{ ticker }} Balance
             </span>
             <span 
               v-else 
               class="display-1"
             >
-              Your Wallet Balance {{ ticker }} - Rinkeby
+              Your Wallet {{ ticker }} Balance - Rinkeby
             </span>
             <v-card-text 
               class="address-link subheading"
@@ -117,6 +119,13 @@
           @click="resumeWithdrawal"
         >
           Resume Withdrawal
+        </v-btn>
+        <v-btn
+          v-if="hasAccountMapping"
+          :disabled="busy"
+          @click="signForeign"
+        >
+          TEST SIGN
         </v-btn>
       </v-flex>
       
@@ -173,7 +182,8 @@ export default {
       eth2loomGatewayAddress: null,
       gas: 350000,
       loomBlockexplorerUrl: null,
-      ethBlockexplorerUrl: null
+      ethBlockexplorerUrl: null,
+      amount: '1'
     }
   },
 
@@ -181,6 +191,9 @@ export default {
     await this.initWeb3()
     await this.loadWebData()
     await this.initLoom()
+    if (!this.user) {
+      return 0
+    }
     await this.initContracts()
     //await this.mapAddresses()
     await this.addEventListeners()
@@ -190,6 +203,37 @@ export default {
   },
 
   methods: {
+    async signForeign() {
+      const loomWalletAddr = new Address(
+        this.loomClient.chainId,
+        '0xEbb2B2299498a4b5255F8009947380f681Db2fE0' //local loom address
+      )
+      const signer = getMetamaskSigner(this.web3js.currentProvider)
+      const ethereumAddress = Address.fromString(`eth:${this.ethereumAddress}`)
+      const plasmaEthSigner = new EthersSigner(signer)
+      console.log('here7')
+      try {
+        const mapper = await AddressMapper.createAsync(
+          this.loomClient,
+          loomWalletAddr
+        )
+        console.log('here8')
+        await mapper.addIdentityMappingAsync(
+          ethereumAddress,
+          loomWalletAddr,
+          plasmaEthSigner
+        )
+        console.log('here9')
+        this.loomClient.disconnect()
+      } catch (e) {
+        if (e.message.includes('Identity mapping already exists.')) {
+        } else {
+          console.error(e)
+        }
+        this.loomClient.disconnect()
+        return false
+      }
+    },
     async manageAccountMapping() {
       const client = this.loomClient
       client.on('error', console.error)
@@ -209,7 +253,8 @@ export default {
         this.loomWalletAddr = accountMapping.loom.toString().split(':')[1]
         this.hasAccountMapping = true
       } else {
-        //sign new mapping
+        //sign new mapping and send to server
+        await this.signForeign()
       }
     },
     async _loadMapping(ethereumAccount, client) {
@@ -401,6 +446,10 @@ export default {
           web3js.currentProvider
         )
         this.ethereumAddress = (await this.ethereumProvider.listAccounts())[0]
+
+        window.ethereum.on('accountsChanged', function(accounts) {
+          location.reload()
+        })
       }
     },
 
@@ -460,6 +509,13 @@ export default {
           let res = response.data
           // JSON responses are automatically parsed.
           this.user = res.user
+          if (!this.user) {
+            alert(
+              "This wallet doesn't appear to be registered with Cryptoraves. \n\nSelect the one that is, or register this one by tweeting: \n\n@cryptoraves #heresmyaddress " +
+                this.ethereumAddress
+            )
+            return 0
+          }
           this.balances = res.balances
           this.tickers = res.tickers
           if (this.tickers) {
@@ -630,7 +686,7 @@ export default {
 
       const weiAmount = ethers.utils.parseUnits(
         //this.ethereumBalance,
-        '1000000',
+        this.amount,
         this.NUM_DECIMALS
       )
       var res = await this.ethereumToken.approve(
@@ -653,7 +709,7 @@ export default {
     },
     async withdrawERC20() {
       this.busy = true
-      const amount = '10000'
+      const amount = this.amount
       //this._approveFee()
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
