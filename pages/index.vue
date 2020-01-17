@@ -34,27 +34,6 @@
       row
       pb-5
     >
-
-      <v-flex xs6>
-        <v-card>
-          <v-card-title>
-            <span 
-              v-if="live" 
-              class="display-1"
-            >
-              Your {{ ticker }} Balance
-            </span>
-            <span 
-              v-else 
-              class="display-1"
-            >
-              {{ ticker }} Rinkeby Balance
-            </span>
-            <v-card-text class="subheading">{{ ethereumAddress }}</v-card-text>
-          </v-card-title>
-          <v-card-text class="display-2">{{ ethereumBalance }}</v-card-text>
-        </v-card>
-      </v-flex>
       <v-flex
         v-if="hasAccountMapping"
       >
@@ -64,19 +43,45 @@
               v-if="live" 
               class="display-1"
             >
-              {{ ticker }} Tokens Ready To Export
+              Your Cryptoraves Balance {{ ticker }}
             </span>
             <span 
               v-else 
               class="display-1"
             >
-              Extdev {{ ticker }} Tokens Ready To Export
+              Your Cryptoraves Balance {{ ticker }} - Extdev
             </span>
-            <v-card-text class="subheading">{{ loomWalletAddr }}</v-card-text>
+            <v-card-text 
+              class="address-link subheading"
+              title="Link to Loomnetwork's Block Explorer"
+              @click="goBlockExplorer(loomBlockexplorerUrl)">{{ loomWalletAddr }}</v-card-text>
           </v-card-title>
           <v-card-text class="display-2">{{ loomBalance }}</v-card-text>
         </v-card>
-      </v-flex> 
+      </v-flex>
+      <v-flex xs6>
+        <v-card>
+          <v-card-title>
+            <span 
+              v-if="live" 
+              class="display-1"
+            >
+              Your Wallet Balance {{ ticker }}
+            </span>
+            <span 
+              v-else 
+              class="display-1"
+            >
+              Your Wallet Balance {{ ticker }} - Rinkeby
+            </span>
+            <v-card-text 
+              class="address-link subheading"
+              title="Link to Etherscan.io"
+              @click="goBlockExplorer(ethBlockexplorerUrl)">{{ ethereumAddress }}</v-card-text>
+          </v-card-title>
+          <v-card-text class="display-2">{{ ethereumBalance }}</v-card-text>
+        </v-card>
+      </v-flex>
     </v-layout>
     <v-layout row>
       <v-flex>
@@ -166,7 +171,9 @@ export default {
       busy: false,
       hasContractMapping: false,
       eth2loomGatewayAddress: null,
-      gas: 350000
+      gas: 350000,
+      loomBlockexplorerUrl: null,
+      ethBlockexplorerUrl: null
     }
   },
 
@@ -202,7 +209,7 @@ export default {
         this.loomWalletAddr = accountMapping.loom.toString().split(':')[1]
         this.hasAccountMapping = true
       } else {
-        throw new Error('Account Mapping Failed')
+        //sign new mapping
       }
     },
     async _loadMapping(ethereumAccount, client) {
@@ -312,7 +319,7 @@ export default {
         ownerLoomAddr
       )
       const foreignContract = Address.fromString(
-        `eth:${this.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
+        `eth:${this.ETHEREUM_CONTRACT_ADDR}`
       )
       var res = await gatewayContract.getContractMappingAsync(foreignContract)
       if (res) {
@@ -385,9 +392,7 @@ export default {
         window.web3 = new Web3(window.web3.currentProvider)
         web3js = new Web3(window.web3.currentProvider)
       } else {
-        alert(
-          'Metamask is not Enabled. Please Use Metamask and Select the Account You Wish to Use.'
-        )
+        throw new Error('Please enable Metamask and refresh.')
       }
 
       if (web3js) {
@@ -483,39 +488,9 @@ export default {
         }
       }
     },
-    //added fucntions
-    /*async mapContracts() {
-      const ownerExtdevAddr = Address.fromString(
-        `${this.loomClient.chainId}:${this.$store.state.LOOM_WALLET_CONTRACT_OWNER_ADDRESS}` //`${client.chainId}:${ownerExtdevAddress}`
-      )
-      const gatewayContract = await Contracts.TransferGateway.createAsync(
-        this.loomClient,
-        ownerExtdevAddr
-      ) //const gatewayContract = await TransferGateway.createAsync(client,ownerExtdevAddr)
-      const foreignContract = Address.fromString(
-        `eth:${this.ETHEREUM_CONTRACT_ADDR}` //`eth:${tokenRinkebyAddress}`
-      )
-      const localContract = Address.fromString(
-        `${this.loomClient.chainId}:${this.LOOM_CONTRACT_ADDR}` //`${client.chainId}:${tokenExtdevAddress}`
-      )
-      const hash = soliditySha3(
-        { type: 'address', value: this.ETHEREUM_CONTRACT_ADDR.slice(2) },
-        { type: 'address', value: this.LOOM_CONTRACT_ADDR.slice(2) }
-      )
-      const foreignContractCreatorTxHash = Buffer.from(
-        this.$store.state.ETHEREUM_CONTRACT_TXN_HASH.slice(2), //rinkebyTxHash.slice(2),
-        'hex'
-      )
-      var signer = new EthersSigner(this.ethereumProvider.getSigner())
-      const foreignContractCreatorSig = await signer.signAsync(hash)
-      console.log
-      var res = await gatewayContract.addContractMappingAsync({
-        localContract,
-        foreignContract,
-        foreignContractCreatorSig,
-        foreignContractCreatorTxHash
-      })
-    },*/
+    async goBlockExplorer(link) {
+      window.open(link)
+    },
     async foreignContractSigner() {
       const hash = soliditySha3(
         {
@@ -563,12 +538,24 @@ export default {
         case 1: // Ethereum Mainnet
           this.eth2loomGatewayAddress =
             '0xe080079ac12521d57573f39543e1725ea3e16dcc'
+          this.ethBlockexplorerUrl =
+            'https://etherscan.io/address/' + this.ethereumAddress
+          this.loomBlockexplorerUrl =
+            'https://basechain-blockexplorer.dappchains.com/address/' +
+            this.loomWalletAddr +
+            '/transactions'
           version = 1
           break
 
         case 4: // Rinkeby
           this.eth2loomGatewayAddress =
             '0x9c67fD4eAF0497f9820A3FBf782f81D6b6dC4Baa'
+          this.ethBlockexplorerUrl =
+            'https://rinkeby.etherscan.io/address/' + this.ethereumAddress
+          this.loomBlockexplorerUrl =
+            'https://extdev-blockexplorer.dappchains.com/address/' +
+            this.loomWalletAddr +
+            '/transactions'
           version = 2
           break
 
@@ -583,7 +570,7 @@ export default {
       */
       const ethereumGatewayContract = await createEthereumGatewayAsync(
         version,
-        this.eth2loomGatewayAddress, // In this example, we're instantiating the Rinkeby transfer gateway
+        this.eth2loomGatewayAddress, // In this example, we're instantiating the Ethereum transfer gateway
         this.ethereumProvider.getSigner()
       )
       return ethereumGatewayContract
@@ -666,7 +653,7 @@ export default {
     },
     async withdrawERC20() {
       this.busy = true
-      const amount = '500'
+      const amount = '10000'
       //this._approveFee()
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
@@ -694,7 +681,7 @@ export default {
         gasLimit: this.gas
       })
       console.log(`Tokens withdrawn from MainNet Gateway.`)
-      console.log(`Rinkeby tx hash: ${tx.hash}`)
+      console.log(`Ethereum tx hash: ${tx.hash}`)
       alert(
         'Token withdraw request processed. Please allow up to 15 min for tokens to arrive in your account.'
       )
@@ -788,5 +775,9 @@ export default {
   height: 110px;
   border-radius: 50%;
   margin: auto;
+}
+.address-link:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
 </style>

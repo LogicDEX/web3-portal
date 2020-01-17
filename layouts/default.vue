@@ -6,10 +6,12 @@
       fixed
       app
     >
-      <img 
-        src="~/assets/cryptoraves_Horozontal Alignment_Full Color_JPG.png"
-        alt
-      >
+      <a href="/">
+        <img 
+          src="~/assets/cryptoraves_Horozontal Alignment_Full Color_JPG.png"
+          alt
+        >
+      </a>
       <v-toolbar-title
         class="display-2 blue--text"
       >Cryptoraves Web3 Portal
