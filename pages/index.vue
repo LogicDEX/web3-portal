@@ -211,19 +211,23 @@ export default {
       const signer = getMetamaskSigner(this.web3js.currentProvider)
       const ethereumAddress = Address.fromString(`eth:${this.ethereumAddress}`)
       const plasmaEthSigner = new EthersSigner(signer)
-      console.log('here7')
+      /*this.loomClient.txMiddleware = createDefaultTxMiddleware(
+        this.loomClient,
+        CryptoUtils.B64ToUint8Array(
+          'tlFvYK7kT23Geb2w+ayUruVNlrMn14OS5tL8t216WBNr9l/WiYepOQmpJEMMeCwl5RYgm30kKTI1bc3KsFkJOQ=='
+        )
+      )*/
       try {
         const mapper = await AddressMapper.createAsync(
           this.loomClient,
           loomWalletAddr
         )
-        console.log('here8')
-        await mapper.addIdentityMappingAsync(
+        var res = await mapper.addIdentityMappingAsync(
           ethereumAddress,
           loomWalletAddr,
           plasmaEthSigner
         )
-        console.log('here9')
+        console.log(res)
         this.loomClient.disconnect()
       } catch (e) {
         if (e.message.includes('Identity mapping already exists.')) {
@@ -322,7 +326,7 @@ export default {
       )
       this.loomClient.txMiddleware = createDefaultTxMiddleware(
         this.loomClient,
-        privateKey
+        CryptoUtils.B64ToUint8Array(privateKey)
       )
       const provider = new LoomProvider(this.loomClient, privateKey)
       const web3Provider = new Web3(provider)
@@ -689,16 +693,19 @@ export default {
         this.amount,
         this.NUM_DECIMALS
       )
+      alert('Please sign the next prompt to approve this transaction.') //<- Modal 1: Form that allows for integer value input for deposit: "please enter the amount you wish to deposit then sign the following prompt to approve the transaction."
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
         weiAmount.toString(),
         { gasLimit: this.gas }
       )
+      alert('Please confirm your deposit into your Crytporaves account.') //Modal 2
       res = await this.ethereumGateway.contract.depositERC20(
         weiAmount,
         this.ETHEREUM_CONTRACT_ADDR,
         { gasLimit: this.gas }
       )
+      alert('Please wait up to 30min for deposit to complete.') //Modal 3
       this.busy = false
     },
     async resumeWithdrawal() {
@@ -711,10 +718,12 @@ export default {
       this.busy = true
       const amount = this.amount
       //this._approveFee()
+      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the following prompt to approve the transaction."
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
       console.log('Getting withdrawal receipt')
       const receipt = await this._getWithdrawalReceipt()
+      alert('Now confirm the next transaction to get your tokens.') //Modal 6
       console.log('Withdrawing from MainNet Gateway')
       await this._withdrawCoinsFromMainNetGateway(receipt)
 
@@ -739,7 +748,7 @@ export default {
       console.log(`Tokens withdrawn from MainNet Gateway.`)
       console.log(`Ethereum tx hash: ${tx.hash}`)
       alert(
-        'Token withdraw request processed. Please allow up to 15 min for tokens to arrive in your account.'
+        'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.'
       )
     },
     async _getWithdrawalReceipt() {
@@ -763,6 +772,7 @@ export default {
       const dAppChainGatewayAddr = this.web3Loom.utils.toChecksumAddress(
         this.loomGateway.address.local.toString()
       )
+
       console.log('Approving Loom Transfer Gateway to take the coins.')
       await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
       const timeout = 60 * 5000
@@ -804,6 +814,7 @@ export default {
           listener
         )
       })
+      alert('Please wait for the next prompt.') //Modal 5
       await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
