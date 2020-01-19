@@ -183,7 +183,7 @@ export default {
       gas: 350000,
       loomBlockexplorerUrl: null,
       ethBlockexplorerUrl: null,
-      amount: '1'
+      amount: '100'
     }
   },
 
@@ -718,7 +718,7 @@ export default {
       this.busy = true
       const amount = this.amount
       //this._approveFee()
-      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the following prompt to approve the transaction."
+      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the next TWO prompts to approve the transaction."
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
       console.log('Getting withdrawal receipt')
@@ -750,6 +750,7 @@ export default {
       alert(
         'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.'
       )
+      this.ready = true
     },
     async _getWithdrawalReceipt() {
       const userLocalAddr = Address.fromString(
@@ -814,12 +815,13 @@ export default {
           listener
         )
       })
-      alert('Please wait for the next prompt.') //Modal 5
       await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
+      alert('Please wait for the next prompt.') //Modal 5
+      this.ready = false
       await receiveSignedWithdrawalEvent
     }
   }
