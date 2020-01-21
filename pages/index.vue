@@ -148,7 +148,8 @@ import {
   SignedEthTxMiddleware,
   createEthereumGatewayAsync,
   createDefaultTxMiddleware,
-  getMetamaskSigner
+  getMetamaskSigner,
+  soliditySha3
 } from 'loom-js'
 import { ethers } from 'ethers'
 import BN from 'bn.js'
@@ -204,39 +205,29 @@ export default {
 
   methods: {
     async signForeign() {
-      const loomWalletAddr = new Address(
-        this.loomClient.chainId,
-        '0xEbb2B2299498a4b5255F8009947380f681Db2fE0' //local loom address
-      )
+      alert(
+        'Hello ' +
+          this.user.platformHandle +
+          ' Please sign the next prompt to initialize your Mainnet account.'
+      ) //Modal 7
       const signer = getMetamaskSigner(this.web3js.currentProvider)
-      const ethereumAddress = Address.fromString(`eth:${this.ethereumAddress}`)
       const plasmaEthSigner = new EthersSigner(signer)
-      /*this.loomClient.txMiddleware = createDefaultTxMiddleware(
-        this.loomClient,
-        CryptoUtils.B64ToUint8Array(
-          'tlFvYK7kT23Geb2w+ayUruVNlrMn14OS5tL8t216WBNr9l/WiYepOQmpJEMMeCwl5RYgm30kKTI1bc3KsFkJOQ=='
-        )
-      )*/
-      try {
-        const mapper = await AddressMapper.createAsync(
-          this.loomClient,
-          loomWalletAddr
-        )
-        var res = await mapper.addIdentityMappingAsync(
-          ethereumAddress,
-          loomWalletAddr,
-          plasmaEthSigner
-        )
-        console.log(res)
-        this.loomClient.disconnect()
-      } catch (e) {
-        if (e.message.includes('Identity mapping already exists.')) {
-        } else {
-          console.error(e)
+      const hash = soliditySha3(
+        {
+          type: 'address',
+          value: this.ethereumAddress.slice(2)
+        },
+        {
+          type: 'address',
+          value: this.user.dappchainAddress.toLowerCase().slice(2)
         }
-        this.loomClient.disconnect()
-        return false
-      }
+      )
+      console.log(this.ethereumAddress)
+      console.log(this.user.dappchainAddress)
+      console.log(plasmaEthSigner)
+      const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
+      const signatureString = foreignAccountSig.toString('hex')
+      console.log(signatureString)
     },
     async manageAccountMapping() {
       const client = this.loomClient
@@ -550,45 +541,6 @@ export default {
     },
     async goBlockExplorer(link) {
       window.open(link)
-    },
-    async foreignContractSigner() {
-      const hash = soliditySha3(
-        {
-          type: 'address',
-          value: this.ETHEREUM_CONTRACT_ADDR.slice(2)
-        },
-        {
-          type: 'address',
-          value: this.LOOM_CONTRACT_ADDR.slice(2)
-        }
-      )
-      var signer = new EthersSigner(this.ethereumProvider.getSigner())
-      const foreignContractCreatorSig = await signer.signAsync(hash)
-      //console.log(foreignContractCreatorSig)
-      const signatureString = foreignContractCreatorSig.toString('hex')
-      //provide the partner signature string
-      //console.log(signatureString)
-
-      axios
-        .get(
-          'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=web3portal&hash=' +
-            signatureString +
-            '&ethContractOwnerAddress=' +
-            this.ETHEREUM_CONTRACT_OWNER_ADDR
-        )
-        .then(response => {
-          // JSON responses are automatically parsed.
-          let res = response.data
-          if (res != 'Signature accepted. Cryptoraves will now process.') {
-            alert('Issue with signature: ' + res)
-          } else {
-            alert(res)
-          }
-          console.log(res)
-        })
-        .catch(e => {
-          console.log(e)
-        })
     },
     // Returns a new wrapper for the Ethereum Gateway contract
     async getEthereumGatewayContract() {
