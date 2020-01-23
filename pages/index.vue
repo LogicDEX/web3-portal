@@ -105,7 +105,8 @@ export default {
       ethBlockexplorerUrl: null,
       amount: '100',
       withdrawalHash: null,
-      depositHash: null
+      depositHash: null,
+      iteration: 0
     }
   },
 
@@ -114,6 +115,9 @@ export default {
     await this.loadWebData()
     await this.initLoom()
     if (!this.user) {
+      return 0
+    }
+    if (!this.loomWalletAddr) {
       return 0
     }
     await this.initContracts()
@@ -125,6 +129,38 @@ export default {
   },
 
   methods: {
+    async confirmLocalMapping() {
+      const sleep = milliseconds => {
+        return new Promise(resolve => setTimeout(resolve, milliseconds))
+      }
+      const delayAndTryAgain = async () => {
+        await sleep(30000)
+        //do stuff
+        if (this.iteration <= 10) {
+          this.iteration++
+          this.confirmLocalMapping()
+        }
+      }
+      var webDataUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=pingForLocalMappingConfirmation&ethAddress=' +
+        this.ethereumAddress
+      axios
+        .get(webDataUrl)
+        .then(response => {
+          if (response.data.toLowerCase() == 'address mapping confirmed!') {
+            //refresh
+            console.log(response.data)
+            this.busy = false
+            window.location.reload(true)
+          }
+        })
+        .catch(e => {
+          throw new Error(e)
+        })
+      //wait and try again
+      console.log('Waiting For Mapping Confirmation ' + this.iteration)
+      delayAndTryAgain()
+    },
     async sendHexSig(sig) {
       var webDataUrl =
         'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=localAccountSigner&u=' +
@@ -135,16 +171,18 @@ export default {
         .get(webDataUrl)
         .then(response => {
           console.log(response.data)
+          this.confirmLocalMapping()
         })
         .catch(e => {
           throw new Error(e)
         })
     },
     async signForeign() {
+      this.busy = true
       alert(
         'Hello ' +
           this.user.platformHandle +
-          ' Please sign the next prompt to initialize your Mainnet account.'
+          ' This is a one-time setup. Please sign the next prompt to initialize your Mainnet account.'
       ) //Modal 7
       const signer = getMetamaskSigner(this.web3js.currentProvider)
       const plasmaEthSigner = new EthersSigner(signer)
@@ -158,16 +196,17 @@ export default {
           value: this.ethereumAddress.slice(2)
         }
       )
-      console.log(this.ethereumAddress + ' <-- Ethereum Address')
-      console.log(this.user.dappchainAddress + ' <-- Loom Address')
-      console.log(hash + ' <-- hash produced from addresses')
-      console.log('PlasmaEthSigner containing the current Ethereum address:')
-      console.log(plasmaEthSigner)
+      //console.log(this.ethereumAddress + ' <-- Ethereum Address')
+      //console.log(this.user.dappchainAddress + ' <-- Loom Address')
+      //console.log(hash + ' <-- hash produced from addresses')
+      //console.log('PlasmaEthSigner containing the current Ethereum address:')
+      //console.log(plasmaEthSigner)
       const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
       const signatureString = foreignAccountSig.toString('hex')
       //sendHexSig(signatureString)
-      console.log('Hex Signature passed to backend:')
-      console.log(signatureString)
+      console.log('Hex Signature passed to backend')
+      //console.log(signatureString)
+      await this.sendHexSig(signatureString)
     },
     async manageAccountMapping() {
       const client = this.loomClient
@@ -202,7 +241,9 @@ export default {
           loom: mapping.to
         }
       } catch (error) {
-        console.error(error)
+        if (!error.data.toString().includes('failed to map address')) {
+          console.error(error)
+        }
         accountMapping = null
       } finally {
         mapper.removeAllListeners()
