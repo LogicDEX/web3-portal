@@ -125,6 +125,21 @@ export default {
   },
 
   methods: {
+    async sendHexSig(sig) {
+      var webDataUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=localAccountSigner&u=' +
+        this.user.platformHandle +
+        '&s=' +
+        sig
+      axios
+        .get(webDataUrl)
+        .then(response => {
+          console.log(response.data)
+        })
+        .catch(e => {
+          throw new Error(e)
+        })
+    },
     async signForeign() {
       alert(
         'Hello ' +
@@ -136,11 +151,11 @@ export default {
       const hash = soliditySha3(
         {
           type: 'address',
-          value: this.ethereumAddress.slice(2)
+          value: this.user.dappchainAddress.toLowerCase().slice(2)
         },
         {
           type: 'address',
-          value: this.user.dappchainAddress.toLowerCase().slice(2)
+          value: this.ethereumAddress.slice(2)
         }
       )
       console.log(this.ethereumAddress + ' <-- Ethereum Address')
@@ -150,6 +165,7 @@ export default {
       console.log(plasmaEthSigner)
       const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
       const signatureString = foreignAccountSig.toString('hex')
+      //sendHexSig(signatureString)
       console.log('Hex Signature passed to backend:')
       console.log(signatureString)
     },
