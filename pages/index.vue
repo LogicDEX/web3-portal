@@ -103,7 +103,9 @@ export default {
       gas: 350000,
       loomBlockexplorerUrl: null,
       ethBlockexplorerUrl: null,
-      amount: '100'
+      amount: '100',
+      withdrawalHash: null,
+      depositHash: null
     }
   },
 
@@ -141,11 +143,14 @@ export default {
           value: this.user.dappchainAddress.toLowerCase().slice(2)
         }
       )
-      console.log(this.ethereumAddress)
-      console.log(this.user.dappchainAddress)
+      console.log(this.ethereumAddress + ' <-- Ethereum Address')
+      console.log(this.user.dappchainAddress + ' <-- Loom Address')
+      console.log(hash + ' <-- hash produced from addresses')
+      console.log('PlasmaEthSigner containing the current Ethereum address:')
       console.log(plasmaEthSigner)
       const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
       const signatureString = foreignAccountSig.toString('hex')
+      console.log('Hex Signature passed to backend:')
       console.log(signatureString)
     },
     async manageAccountMapping() {
@@ -413,6 +418,23 @@ export default {
         Address.fromString('eth:' + this.ethereumAddress)
       )
     },
+    async transportIndicator(verified) {
+      var webDataUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=depWithdrawindicator&p=' +
+        this.user.platformHandle +
+        '&t=' +
+        this.user.ticker +
+        '&v=' +
+        verified
+      axios
+        .get(webDataUrl)
+        .then(response => {
+          console.log(response.data)
+        })
+        .catch(e => {
+          throw new Error(e)
+        })
+    },
     async loadWebData() {
       var webDataUrl =
         'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=getweb3PortalData&ethAddress=' +
@@ -453,6 +475,7 @@ export default {
           this.TOTAL_SUPPLY = this.balances[i].totalSupply
           this.TOKEN_IMAGE_URL = this.balances[i].tokenImgUrl
           if (this.ready) {
+            await this.initContracts()
             await this.updateBalances()
           }
         }
@@ -513,6 +536,10 @@ export default {
       )
       this.ethereumToken.on(ethereumReceiveFilter, (from, to, value) => {
         this.updateBalances()
+        if (this.withdrawalHash) {
+          this.busy = false
+          this.withdrawalHash = null
+        }
       })
 
       let ethereumSendFilter = this.ethereumToken.filters.Transfer(
@@ -529,6 +556,10 @@ export default {
       )
       this.loomToken.on(loomReceiveFilter, (from, to, value) => {
         this.updateBalances()
+        if (this.depositHash) {
+          this.busy = false
+          this.depositHash = null
+        }
       })
       let loomSendFilter = this.loomToken.filters.Transfer(
         this.loomWalletAddr,
@@ -564,20 +595,21 @@ export default {
         this.amount,
         this.NUM_DECIMALS
       )
-      alert('Please sign the next prompt to approve this transaction.') //<- Modal 1: Form that allows for integer value input for deposit: "please enter the amount you wish to deposit then sign the following prompt to approve the transaction."
+      alert('Please sign the next prompt to approve this transaction.') //<- Modal 1: Form that allows for integer value input for deposit: "please enter the amount you wish to deposit then sign the following prompt to approve the transaction."   Input must be integer greater than 0 passed as a string to this.amount
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
         weiAmount.toString(),
         { gasLimit: this.gas }
       )
       alert('Please confirm your deposit into your Crytporaves account.') //Modal 2
-      res = await this.ethereumGateway.contract.depositERC20(
+      const receipt = await this.ethereumGateway.contract.depositERC20(
         weiAmount,
         this.ETHEREUM_CONTRACT_ADDR,
         { gasLimit: this.gas }
       )
-      alert('Please wait up to 30min for deposit to complete.') //Modal 3
-      this.busy = false
+      alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
+      console.log(receipt.hash)
+      this.depositHash = receipt.hash
     },
     async resumeWithdrawal() {
       const receipt = await this._getWithdrawalReceipt()
@@ -589,7 +621,7 @@ export default {
       this.busy = true
       const amount = this.amount
       //this._approveFee()
-      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the next TWO prompts to approve the transaction."
+      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the next TWO prompts to approve the transaction."  Input must be integer greater than 0 passed as a string to this.amount
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
       console.log('Getting withdrawal receipt')
@@ -597,8 +629,7 @@ export default {
       alert('Now confirm the next transaction to get your tokens.') //Modal 6
       console.log('Withdrawing from MainNet Gateway')
       await this._withdrawCoinsFromMainNetGateway(receipt)
-
-      this.busy = false
+      this.withdrawalHash = receipt.hash
     },
     async _approveFee() {
       const EthCoin = Contracts.EthCoin
@@ -619,9 +650,8 @@ export default {
       console.log(`Tokens withdrawn from MainNet Gateway.`)
       console.log(`Ethereum tx hash: ${tx.hash}`)
       alert(
-        'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.'
+        'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.' //While this.busy status bar here after clcking ok: $TICKER Withdraw Awaiting Confirmation
       )
-      this.ready = true
     },
     async _getWithdrawalReceipt() {
       const userLocalAddr = Address.fromString(
@@ -691,8 +721,8 @@ export default {
         tokenAddress,
         ownerMainnetAddr
       )
-      alert('Please wait for the next prompt.') //Modal 5
-      this.ready = false
+      alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
+      this.busy = true
       await receiveSignedWithdrawalEvent
     }
   }
