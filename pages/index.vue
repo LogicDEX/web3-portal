@@ -1,136 +1,49 @@
 <template lang="html">
-  <v-container 
-    v-if="ready"
-    fluid>
-    <span 
-      class="display-2"
-    >
-      Welcome {{ user.platformHandle }}
-    </span>
-    <div class="portfolio-userimg">
-      <img
-        :src="user.imgUrl"
-        :title="user.platformHandle"
-      >
+  <div class="container">
+    <div class="user-title-section d-flex">
+      <SectionHeader>Export of $VYA & $CRYPTORAVES Tokens Now Available!</SectionHeader>
+      <a 
+        class="user-title-section-link" 
+        href="/">
+        What about my personalized tokens?</a>
+      <div class="portfolio-user">
+        <div
+          class="portfolio-userwelcome"
+        >Welcome {{ user.platformHandle }}</div>
+        <div class="portfolio-userimg">
+          <img
+            :src="user.imgUrl"
+          >
+        </div>
+      </div>
+    </div>   
+    <div class="row user-transaction-section">
+      <div class="col-lg-4 col-md-12">
+        <BalancePanel />
+      </div>
+      <div class="user-transaction-section-buttons col-lg-4 col-md-12">
+        <button 
+          type="button"
+          class="btn btn-success btn-arrow-left">
+          Deposit
+        </button>
+        <div class="portfolio-userimg">
+          <img
+            :src="TOKEN_IMAGE_URL"
+            :title="ticker">
+        </div>
+        <button 
+          type="button"
+          class="btn btn-danger btn-arrow-right">
+          Withdraw
+        </button>     
+      </div>
+      <div class="col-lg-4 col-md-12">
+        <BalancePanel />
+      </div>
     </div>
-    <span 
-      class="display-2"
-    >
-      Please Select Token for Import/Export:
-    </span>
-    <v-select
-      id="tickerSelector"
-      v-model="ticker"
-      :items="tickers"
-      label="Selected Ticker:"
-      @change="tickerSelect"
-    >Ticker
-    </v-select>
-    <div class="portfolio-userimg">
-      <img
-        :src="TOKEN_IMAGE_URL"
-        :title="ticker"
-      >
-    </div>
-    <v-layout
-      row
-      pb-5
-    >
-      <v-flex
-        v-if="hasAccountMapping"
-      >
-        <v-card>
-          <v-card-title>
-            <span 
-              v-if="live" 
-              class="display-1"
-            >
-              Your Cryptoraves {{ ticker }} Balance
-            </span>
-            <span 
-              v-else 
-              class="display-1"
-            >
-              Your Cryptoraves {{ ticker }} Balance - Extdev
-            </span>
-            <v-card-text 
-              class="address-link subheading"
-              title="Link to Loomnetwork's Block Explorer"
-              @click="goBlockExplorer(loomBlockexplorerUrl)">{{ loomWalletAddr }}</v-card-text>
-          </v-card-title>
-          <v-card-text class="display-2">{{ loomBalance }}</v-card-text>
-        </v-card>
-      </v-flex>
-      <v-flex xs6>
-        <v-card>
-          <v-card-title>
-            <span 
-              v-if="live" 
-              class="display-1"
-            >
-              Your Wallet {{ ticker }} Balance
-            </span>
-            <span 
-              v-else 
-              class="display-1"
-            >
-              Your Wallet {{ ticker }} Balance - Rinkeby
-            </span>
-            <v-card-text 
-              class="address-link subheading"
-              title="Link to Etherscan.io"
-              @click="goBlockExplorer(ethBlockexplorerUrl)">{{ ethereumAddress }}</v-card-text>
-          </v-card-title>
-          <v-card-text class="display-2">{{ ethereumBalance }}</v-card-text>
-        </v-card>
-      </v-flex>
-    </v-layout>
-    <v-layout row>
-      <v-flex>
-        <v-btn
-          :disabled="busy"
-          @click="checkAccountMappingButton"
-        >
-          Check Account Mapping
-        </v-btn>
-        <v-btn
-          :disabled="busy"
-          @click="checkContractMapping"
-        >
-          Check Contract Mapping
-        </v-btn>
-        <v-btn
-          v-if="hasAccountMapping"
-          :disabled="busy"
-          @click="deposit"
-        >
-          Deposit To Cryptoraves
-        </v-btn>
-        <v-btn
-          v-if="hasAccountMapping"
-          :disabled="busy"
-          @click="withdrawERC20"
-        >
-          Withdraw To Wallet
-        </v-btn>
-        <v-btn
-          v-if="hasAccountMapping"
-          :disabled="busy"
-          @click="resumeWithdrawal"
-        >
-          Resume Withdrawal
-        </v-btn>
-        <v-btn
-          v-if="hasAccountMapping"
-          :disabled="busy"
-          @click="signForeign"
-        >
-          TEST SIGN
-        </v-btn>
-      </v-flex>
-      
-    </v-layout>
-  </v-container>
+   
+  </div>
 </template>
 
 <script>
@@ -154,8 +67,14 @@ import {
 import { ethers } from 'ethers'
 import BN from 'bn.js'
 import { AddressMapper } from 'loom-js/dist/contracts'
+import SectionHeader from '../components/SectionHeader'
+import BalancePanel from '../components/BalancePanel'
 
 export default {
+  components: {
+    SectionHeader,
+    BalancePanel
+  },
   data() {
     return {
       I_WANT_TO: this.$route.query['iWantTo'],
@@ -780,6 +699,34 @@ export default {
 }
 </script>
 <style scoped>
+.user-title-section {
+  position: relative;
+  flex-direction: column;
+}
+.user-title-section-link {
+  font-size: 16px;
+  color: rgb(0, 38, 101);
+  font-family: 'Montserrat';
+  text-align: center;
+  line-height: 1.2em;
+  margin: 20px auto auto auto;
+}
+.user-transaction-section {
+  margin-top: 100px;
+}
+.portfolio-user {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  text-align: center;
+}
+.portfolio-userwelcome {
+  margin-bottom: 20px;
+  font-size: 30px;
+  font-family: 'Montserrat';
+  color: rgb(0, 38, 101);
+  text-align: center;
+}
 .portfolio-userimg {
   background: white;
   display: flex;
@@ -791,6 +738,16 @@ export default {
   animation: avatar-from-effect 2s infinite;
   transition: all 0.5s ease-out;
 }
+
+@keyframes avatar-from-effect {
+  0% {
+    box-shadow: 0 0 0 0px rgb(43, 96, 222, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 15px rgb(43, 96, 222, 0);
+  }
+}
+
 .portfolio-userimg img {
   width: 110px;
   height: 110px;
@@ -800,5 +757,90 @@ export default {
 .address-link:hover {
   cursor: pointer;
   text-decoration: underline;
+}
+.user-transaction-section-buttons {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.btn {
+  margin: auto;
+  width: 200px;
+}
+.btn-arrow-right,
+.btn-arrow-left {
+  position: relative;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+.btn-arrow-right {
+  padding-left: 36px;
+}
+.btn-arrow-left {
+  padding-right: 36px;
+}
+.btn-arrow-right:before,
+.btn-arrow-right:after,
+.btn-arrow-left:before,
+.btn-arrow-left:after {
+  /* make two squares (before and after), looking similar to the button */
+  content: '';
+  position: absolute;
+  top: 5px; /* move it down because of rounded corners */
+  width: 22px; /* same as height */
+  height: 22px; /* button_outer_height / sqrt(2) */
+  background: inherit; /* use parent background */
+  border: inherit; /* use parent border */
+  border-left-color: transparent; /* hide left border */
+  border-bottom-color: transparent; /* hide bottom border */
+  border-radius: 0px 4px 0px 0px; /* round arrow corner, the shorthand property doesn't accept "inherit" so it is set to 4px */
+  -webkit-border-radius: 0px 4px 0px 0px;
+  -moz-border-radius: 0px 4px 0px 0px;
+}
+.btn-arrow-right:before,
+.btn-arrow-right:after {
+  transform: rotate(
+    45deg
+  ); /* rotate right arrow squares 45 deg to point right */
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+}
+.btn-arrow-left:before,
+.btn-arrow-left:after {
+  transform: rotate(
+    225deg
+  ); /* rotate left arrow squares 225 deg to point left */
+  -webkit-transform: rotate(225deg);
+  -moz-transform: rotate(225deg);
+  -o-transform: rotate(225deg);
+  -ms-transform: rotate(225deg);
+}
+.btn-arrow-right:before,
+.btn-arrow-left:before {
+  /* align the "before" square to the left */
+  left: -11px;
+}
+.btn-arrow-right:after,
+.btn-arrow-left:after {
+  /* align the "after" square to the right */
+  right: -11px;
+}
+.btn-arrow-right:after,
+.btn-arrow-left:before {
+  /* bring arrow pointers to front */
+  z-index: 1;
+}
+.btn-arrow-right:before,
+.btn-arrow-left:after {
+  /* hide arrow tails background */
+  background-color: white;
+}
+@media only screen and (max-width: 1263px) {
+  .portfolio-user {
+    position: relative;
+  }
 }
 </style>
