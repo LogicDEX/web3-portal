@@ -1,11 +1,13 @@
 <template lang="html">
-  <div class="container">
-    <div class="user-title-section d-flex">
-      <SectionHeader>Export of $VYA & $CRYPTORAVES Tokens Now Available!</SectionHeader>
+  <div>
+    <div class="user-title">
+      <div class="user-title-1">Withdrawal of $VYA & $CRYPTORAVES Tokens Now Available!</div>
       <a 
-        class="user-title-section-link" 
+        class="user-title-link" 
         href="/">
         What about my personalized tokens?</a>
+    </div>
+    <div class="container">
       <div class="portfolio-user">
         <div
           class="portfolio-userwelcome"
@@ -13,36 +15,53 @@
         <div class="portfolio-userimg">
           <img
             :src="user.imgUrl"
+            :title="user.platformHandle"
           >
         </div>
       </div>
-    </div>   
-    <div class="row user-transaction-section">
-      <div class="col-lg-4 col-md-12">
-        <BalancePanel />
-      </div>
-      <div class="user-transaction-section-buttons col-lg-4 col-md-12">
-        <button 
-          type="button"
-          class="btn btn-success btn-arrow-left">
-          Deposit
-        </button>
-        <div class="portfolio-userimg">
-          <img
-            :src="TOKEN_IMAGE_URL"
-            :title="ticker">
+      <div class="token-list-title">Token for Deposit/Withdrawal</div>
+      <div 
+        class="token-list"
+        @click="toggle"         
+      >{{ ticker }}
+        <div 
+          v-show="isOpen"
+          class="token-options"
+        >
+          <div
+            v-for="(option, index) in tickers"
+            :key="index"
+            class="token-option"
+            @click="tickerSelect(option)"
+          >{{ option }}</div>
         </div>
-        <button 
-          type="button"
-          class="btn btn-danger btn-arrow-right">
-          Withdraw
-        </button>     
       </div>
-      <div class="col-lg-4 col-md-12">
-        <BalancePanel />
-      </div>
+      <div class="row user-transaction-section">
+        <div class="col-lg-4 col-md-12">
+          <BalancePanel />
+        </div>
+        <div class="user-transaction-section-buttons col-lg-4 col-md-12">
+          <button 
+            type="button"
+            class="btn btn-success btn-arrow-left">
+            Deposit
+          </button>
+          <div class="portfolio-userimg">
+            <img
+              :src="TOKEN_IMAGE_URL"
+              :title="ticker">
+          </div>
+          <button 
+            type="button"
+            class="btn btn-danger btn-arrow-right">
+            Withdraw
+          </button>     
+        </div>
+        <div class="col-lg-4 col-md-12">
+          <BalancePanel />
+        </div>
+      </div>   
     </div>
-   
   </div>
 </template>
 
@@ -83,6 +102,7 @@ export default {
       tickers: [],
       balances: [],
       ticker: null,
+      isOpen: false,
       live: false,
       ready: false,
       hasAccountMapping: null,
@@ -129,6 +149,9 @@ export default {
   },
 
   methods: {
+    toggle: function() {
+      this.isOpen = !this.isOpen
+    },
     async confirmLocalMapping() {
       const sleep = milliseconds => {
         return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -513,14 +536,16 @@ export default {
           this.tickers = res.tickers
           if (this.tickers) {
             this.ticker = this.tickers[0]
-            this.tickerSelect()
+            this.tickerSelect(this.ticker)
           }
         })
         .catch(e => {
           throw new Error(e)
         })
     },
-    async tickerSelect() {
+    async tickerSelect(option) {
+      this.isOpen = true
+      this.ticker = option
       for (var i = 0; i < this.tickers.length; i++) {
         if (this.balances[i].ticker == this.ticker) {
           this.ETHEREUM_CONTRACT_ADDR = this.balances[i].ethContractAddress
@@ -786,11 +811,21 @@ export default {
 }
 </script>
 <style scoped>
-.user-title-section {
-  position: relative;
-  flex-direction: column;
+/* Banner */
+.user-title {
+  position: absolute;
+  margin-top: 20px;
+  right: 10px;
+  text-align: center;
 }
-.user-title-section-link {
+.user-title-1 {
+  font-size: 20px;
+  font-family: 'Montserrat';
+  font-style: italic;
+  font-weight: bold;
+  color: rgb(0, 38, 101);
+}
+.user-title-link {
   font-size: 16px;
   color: rgb(0, 38, 101);
   font-family: 'Montserrat';
@@ -798,20 +833,77 @@ export default {
   line-height: 1.2em;
   margin: 20px auto auto auto;
 }
+/* Token List */
+.token-list-title {
+  margin: 20px 20px;
+  font-size: 2rem;
+  font-family: 'Roboto Condensed';
+  color: rgb(0, 38, 101);
+  line-height: 1.6;
+  text-align: center;
+}
+.token-list {
+  position: relative;
+  margin: auto;
+  z-index: 2;
+  display: block;
+  width: 200px;
+  height: 40px;
+  padding: 0 20px;
+  background: grey;
+  border-radius: 10px;
+  font: 1.25rem/40px 'Ubuntu', Helvetica, Arial, sans-serif;
+  text-shadow: 2px 2px 0px #000;
+  color: white;
+  cursor: pointer;
+}
+.token-list:after {
+  opacity: 0.5;
+  float: right;
+  content: '▼';
+}
+.token-list:hover:after {
+  opacity: 1;
+}
+.token-options {
+  position: absolute;
+  z-index: 1;
+  margin-top: 3px;
+  left: 0;
+  width: 200px;
+  background: grey;
+  color: white;
+}
+.token-option {
+  cursor: pointer;
+  padding: 5px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  font: 1.2rem 'Vollkorn', Georgia, Times, serif;
+}
+
+/* Hover state */
+.token-option:hover {
+  background-color: lightblue;
+}
+
+/* Reset last child for a nice layout */
+.token-option:last-child {
+  border-bottom: none;
+}
+
 .user-transaction-section {
   margin-top: 100px;
 }
 .portfolio-user {
-  position: absolute;
-  top: 70px;
-  left: 0;
-  text-align: center;
+  margin-top: 100px;
 }
 .portfolio-userwelcome {
-  margin-bottom: 20px;
-  font-size: 30px;
-  font-family: 'Montserrat';
+  margin-bottom: 10px;
+  font-size: 3rem;
+  font-family: 'Roboto Condensed';
   color: rgb(0, 38, 101);
+  font-weight: bold;
+  line-height: 1.6;
   text-align: center;
 }
 .portfolio-userimg {
@@ -825,7 +917,6 @@ export default {
   animation: avatar-from-effect 2s infinite;
   transition: all 0.5s ease-out;
 }
-
 @keyframes avatar-from-effect {
   0% {
     box-shadow: 0 0 0 0px rgb(43, 96, 222, 0.8);
