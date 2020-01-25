@@ -89,7 +89,7 @@
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
       :stillbusy.sync="busy"
-      @complete="showCompleteModal = false"/>
+      @complete="onComplete"/>
   </div>
 </template>
 
@@ -206,6 +206,9 @@ export default {
       )
       // alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
       this.showCompleteModal = true
+    },
+    onComplete: function() {
+      this.showCompleteModal = false
       console.log(receipt.hash)
       this.depositHash = receipt.hash
     },
