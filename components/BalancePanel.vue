@@ -1,41 +1,110 @@
 <template>
   <div class="balancepanel">
-    <div class="balancepanel-title">
-      Your Cryptoraves $VYA Balance
+    <div 
+      v-if="type" 
+      class="balancepanel-title">
+      Your Cryptoraves {{ selectedTicker }} Balance
     </div>
-    <a href="">
-      0xfhjdksfhdjksfhdjsk1234
-    </a>
+    <div
+      v-else
+      class="balancepanel-title">
+      Your Wallet {{ selectedTicker }} Balance
+    </div>
+    <img 
+      v-if="type"
+      class="balancepanel-image"
+      src="../assets/cryptoraves_PNG-01.png">
+    <img 
+      v-else
+      class="balancepanel-image"
+      src="../assets/metamask.png">
+    <div 
+      v-if="type"
+      title="Link to Loomnetwork's Block Explorer"
+      class="address-link"
+      @click="goBlockExplorer(url)">
+      {{ address }}
+    </div>
+    <div
+      v-else
+      title="Link to Etherscan.io"
+      class="address-link"
+      @click="goBlockExplorer(url)">
+      {{ address }}
+    </div>
     <div class="balancepanel-balance">
-      123456.00
+      {{ balance }}
     </div>
   </div>  
 </template>
 
 <script>
 export default {
-  name: 'BalancePanel'
+  name: 'BalancePanel',
+  props: {
+    balance: {
+      type: Number,
+      default: 0
+    },
+    selectedTicker: {
+      type: String,
+      default: ''
+    },
+    address: {
+      type: String,
+      default: ''
+    },
+    url: {
+      type: String,
+      default: ''
+    },
+    type: {
+      type: Boolean,
+      default: false
+    }
+  },
+  methods: {
+    async goBlockExplorer(link) {
+      window.open(link)
+    }
+  }
 }
 </script>
 
 <style scoped>
 .balancepanel {
-  width: 500px;
-  height: 500px;
-  background-color: lightgrey;
+  width: 100%;
+  height: 100%;
   text-align: center;
-  margin: auto;
+  border-radius: 10px;
+  padding: 10px;
   font-family: 'Montserrat';
   color: rgb(0, 38, 101);
   display: flex;
   flex-direction: column;
+  box-shadow: 0 0 1em 1px rgba(0, 133, 169, 0.25);
 }
+
 .balancepanel-title {
+  margin-top: 30px;
   font-size: 30px;
-  margin: auto;
+}
+.balancepanel-image {
+  margin: 10px auto 10px auto;
+  width: 100px;
+  border-radius: 50px;
+}
+.address-link {
+  overflow-wrap: break-word;
+  text-decoration: underline;
+  color: #2196f3;
+  cursor: pointer;
 }
 .balancepanel-balance {
-  font-size: 70px;
-  margin: auto;
+  overflow-wrap: break-word;
+  width: 100%;
+  line-height: 1;
+  font-size: 50px;
+  margin: 30px auto 30px auto;
 }
 </style>

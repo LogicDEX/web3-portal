@@ -38,14 +38,19 @@
       </div>
       <div class="row user-transaction-section">
         <div class="col-lg-4 col-md-12">
-          <BalancePanel />
+          <BalancePanel
+            :selected-ticker="ticker" 
+            :address="loomWalletAddr"
+            :url="loomBlockexplorerUrl"
+            :balance="loomBalance"
+            :type="true"/>
         </div>
         <div class="user-transaction-section-buttons col-lg-4 col-md-12">
           <button 
             type="button"
-            class="btn btn-success btn-arrow-left">
-            Deposit
-          </button>
+            class="btn btn-danger btn-arrow-right">
+            Withdraw
+          </button>                               
           <div class="portfolio-userimg">
             <img
               :src="TOKEN_IMAGE_URL"
@@ -53,15 +58,38 @@
           </div>
           <button 
             type="button"
-            class="btn btn-danger btn-arrow-right">
-            Withdraw
-          </button>     
+            class="btn btn-success btn-arrow-left"
+            @click="showDepositModal">
+            Deposit
+          </button>  
         </div>
         <div class="col-lg-4 col-md-12">
-          <BalancePanel />
+          <BalancePanel 
+            :selected-ticker="ticker"
+            :address="ethereumAddress"
+            :url="ethBlockexplorerUrl"
+            :balance="ethereumBalance"/>                        
         </div>
-      </div>   
+      </div>
+      <div class="instruction-link">Step-by-Step Instructions</div>
     </div>
+    <Modal 
+      v-if="showModal" 
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      :maxamount="ethereumBalance"
+      @deposit="onDeposit"/>
+    <ConfirmModal
+      v-if="showConfirmModal"
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      @confirm="onConfirm"/>
+    <CompleteModal
+      v-if="showCompleteModal"
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      :stillbusy.sync="busy"
+      @complete="showCompleteModal = false"/>
   </div>
 </template>
 
@@ -88,16 +116,26 @@ import BN from 'bn.js'
 import { AddressMapper } from 'loom-js/dist/contracts'
 import SectionHeader from '../components/SectionHeader'
 import BalancePanel from '../components/BalancePanel'
+import Modal from '../components/Modal'
+import ConfirmModal from '../components/ConfirmModal'
+import CompleteModal from '../components/CompleteModal'
 
 export default {
   components: {
     SectionHeader,
-    BalancePanel
+    BalancePanel,
+    Modal,
+    ConfirmModal,
+    CompleteModal
   },
   data() {
     return {
       I_WANT_TO: this.$route.query['iWantTo'],
       TOKEN_IMAGE_URL: '',
+      weiAmount: null,
+      showModal: false,
+      showConfirmModal: false,
+      showCompleteModal: false,
       user: {},
       tickers: [],
       balances: [],
@@ -151,6 +189,28 @@ export default {
   methods: {
     toggle: function() {
       this.isOpen = !this.isOpen
+    },
+    onDeposit: function(amount) {
+      this.showModal = false
+      this.amount = amount
+      if (this.amount) {
+        this.deposit()
+      }
+    },
+    async onConfirm() {
+      this.showConfirmModal = false
+      const receipt = await this.ethereumGateway.contract.depositERC20(
+        this.weiAmount,
+        this.ETHEREUM_CONTRACT_ADDR,
+        { gasLimit: this.gas }
+      )
+      // alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
+      this.showCompleteModal = true
+      console.log(receipt.hash)
+      this.depositHash = receipt.hash
+    },
+    showDepositModal: function() {
+      this.showModal = true
     },
     async confirmLocalMapping() {
       const sleep = milliseconds => {
@@ -544,7 +604,8 @@ export default {
         })
     },
     async tickerSelect(option) {
-      this.isOpen = true
+      event.stopPropagation()
+      this.isOpen = false
       this.ticker = option
       for (var i = 0; i < this.tickers.length; i++) {
         if (this.balances[i].ticker == this.ticker) {
@@ -671,27 +732,17 @@ export default {
     },
     async deposit() {
       this.busy = true
-
-      const weiAmount = ethers.utils.parseUnits(
+      this.weiAmount = ethers.utils.parseUnits(
         //this.ethereumBalance,
         this.amount,
         this.NUM_DECIMALS
       )
-      alert('Please sign the next prompt to approve this transaction.') //<- Modal 1: Form that allows for integer value input for deposit: "please enter the amount you wish to deposit then sign the following prompt to approve the transaction."   Input must be integer greater than 0 passed as a string to this.amount
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
-        weiAmount.toString(),
+        this.weiAmount.toString(),
         { gasLimit: this.gas }
       )
-      alert('Please confirm your deposit into your Crytporaves account.') //Modal 2
-      const receipt = await this.ethereumGateway.contract.depositERC20(
-        weiAmount,
-        this.ETHEREUM_CONTRACT_ADDR,
-        { gasLimit: this.gas }
-      )
-      alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
-      console.log(receipt.hash)
-      this.depositHash = receipt.hash
+      this.showConfirmModal = true
     },
     async resumeWithdrawal() {
       const receipt = await this._getWithdrawalReceipt()
@@ -835,7 +886,8 @@ export default {
 }
 /* Token List */
 .token-list-title {
-  margin: 20px 20px;
+  margin-top: 40px;
+  margin-bottom: 10px;
   font-size: 2rem;
   font-family: 'Roboto Condensed';
   color: rgb(0, 38, 101);
@@ -850,10 +902,10 @@ export default {
   width: 200px;
   height: 40px;
   padding: 0 20px;
-  background: grey;
+  background: #0085a9;
   border-radius: 10px;
   font: 1.25rem/40px 'Ubuntu', Helvetica, Arial, sans-serif;
-  text-shadow: 2px 2px 0px #000;
+  font-weight: bold;
   color: white;
   cursor: pointer;
 }
@@ -871,8 +923,9 @@ export default {
   margin-top: 3px;
   left: 0;
   width: 200px;
-  background: grey;
+  background: #0085a9;
   color: white;
+  border-radius: 10px;
 }
 .token-option {
   cursor: pointer;
@@ -883,7 +936,7 @@ export default {
 
 /* Hover state */
 .token-option:hover {
-  background-color: lightblue;
+  opacity: 0.7;
 }
 
 /* Reset last child for a nice layout */
@@ -937,14 +990,17 @@ export default {
   text-decoration: underline;
 }
 .user-transaction-section-buttons {
+  font-family: 'Roboto Condensed';
   text-align: center;
   display: flex;
   flex-direction: column;
 }
 
 .btn {
-  margin: auto;
-  width: 200px;
+  margin: 30px auto 30px auto;
+  width: 150px;
+  font-size: 15px;
+  font-weight: bold;
 }
 .btn-arrow-right,
 .btn-arrow-left {
@@ -1016,9 +1072,16 @@ export default {
   /* hide arrow tails background */
   background-color: white;
 }
+.instruction-link {
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 16px;
+  color: rgb(0, 38, 101);
+  font-family: 'Montserrat';
+  text-align: center;
+  line-height: 1.2em;
+  margin: 50px auto 20px auto;
+}
 @media only screen and (max-width: 1263px) {
-  .portfolio-user {
-    position: relative;
-  }
 }
 </style>
