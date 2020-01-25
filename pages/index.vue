@@ -204,16 +204,36 @@ export default {
         this.ETHEREUM_CONTRACT_ADDR,
         { gasLimit: this.gas }
       )
+      this.putTxHash(receipt.hash, 'ethereum')
       // alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
       this.showCompleteModal = true
     },
     onComplete: function() {
       this.showCompleteModal = false
-      console.log(receipt.hash)
       this.depositHash = receipt.hash
     },
     showDepositModal: function() {
       this.showModal = true
+    },
+    async putTxHash(hash, network) {
+      var webDataUrl =
+        'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=putTxHash&txHash=' +
+        hash +
+        '&network=' +
+        network
+      axios
+        .get(webDataUrl)
+        .then(response => {
+          if (response.data.toLowerCase() == 'Txn Hash Saved 1 None') {
+            //refresh
+            console.log('Tx Hash Saved')
+            this.busy = false
+            window.location.reload(true)
+          }
+        })
+        .catch(e => {
+          throw new Error(e)
+        })
     },
     async confirmLocalMapping() {
       const sleep = milliseconds => {
@@ -542,11 +562,15 @@ export default {
         'function transfer(address to, uint256 value) external returns (bool) @30000',
         'event Transfer(address indexed from, address indexed to, uint256 value)'
       ]
-      this.ethereumToken = new ethers.Contract(
-        this.ETHEREUM_CONTRACT_ADDR,
-        tokenABI,
-        this.ethereumProvider.getSigner()
-      )
+      try {
+        this.ethereumToken = new ethers.Contract(
+          this.ETHEREUM_CONTRACT_ADDR,
+          tokenABI,
+          this.ethereumProvider.getSigner()
+        )
+      } catch (e) {
+        window.location.reload(true)
+      }
       this.loomToken = new ethers.Contract(
         this.LOOM_CONTRACT_ADDR,
         tokenABI,
@@ -702,6 +726,8 @@ export default {
       )
       this.loomToken.on(loomReceiveFilter, (from, to, value) => {
         this.updateBalances()
+        console.log('From: ' + from + ' to: ' + to + ' val: ' + value)
+        console.log(loomReceiveFilter)
         if (this.depositHash) {
           this.busy = false
           this.depositHash = null
@@ -719,9 +745,7 @@ export default {
     async updateBalances() {
       const ethereumBalance = await this.ethereumToken.balanceOf(
         this.ethereumAddress,
-        {
-          from: this.ethereumAddress
-        }
+        { from: this.ethereumAddress }
       )
       this.ethereumBalance = ethers.utils.formatUnits(
         ethereumBalance.toString(),
@@ -762,6 +786,7 @@ export default {
       await this._transferCoinsToLoomGateway(amount)
       console.log('Getting withdrawal receipt')
       const receipt = await this._getWithdrawalReceipt()
+      this.putTxHash(receipt.hash, 'loom')
       alert('Now confirm the next transaction to get your tokens.') //Modal 6
       console.log('Withdrawing from MainNet Gateway')
       await this._withdrawCoinsFromMainNetGateway(receipt)
