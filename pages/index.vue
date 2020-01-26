@@ -48,7 +48,8 @@
         <div class="user-transaction-section-buttons col-lg-4 col-md-12">
           <button 
             type="button"
-            class="btn btn-danger btn-arrow-right">
+            class="btn btn-danger btn-arrow-right"
+            @click="showWithdraw">
             Withdraw
           </button>                               
           <div class="portfolio-userimg">
@@ -59,9 +60,15 @@
           <button 
             type="button"
             class="btn btn-success btn-arrow-left"
-            @click="showDepositModal">
+            @click="showDeposit">
             Deposit
-          </button>  
+          </button>
+          <button 
+            type="button"
+            class="btn btn-success btn-arrow-left"
+            @click="resumeWithdrawal">
+            ResumeWithdraw
+          </button>    
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
@@ -73,12 +80,13 @@
       </div>
       <div class="instruction-link">Step-by-Step Instructions</div>
     </div>
-    <Modal 
-      v-if="showModal" 
+    <DepositModal 
+      v-if="showDepoistModal" 
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
       :maxamount="ethereumBalance"
-      @deposit="onDeposit"/>
+      @deposit="onDeposit"
+      @closeDeposit="showDepoistModal=false"/>
     <ConfirmModal
       v-if="showConfirmModal"
       :imageurl="TOKEN_IMAGE_URL"
@@ -90,6 +98,28 @@
       :imagetitle="ticker"
       :stillbusy.sync="busy"
       @complete="onComplete"/>
+    <WithdrawModal
+      v-if="showWithdrawModal"
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      :maxamount="loomBalance"
+      @withdraw="onWithdraw"
+      @closeWithdraw="showWithdrawModal=false"/>
+    <TransferStatus 
+      v-if="showTransferStatus"    
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"/>
+    <ConfirmWithdraw
+      v-if="showConfirmWithdraw"
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      @confirmwithdraw="onConfirmWithdraw"/>
+    <ConfirmWithdrawComplete
+      v-if="showConfirmWithdrawComplete"
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      :stillbusy.sync="busy"
+      @withdrawcomplete="onWithdrawComplete"/>
   </div>
 </template>
 
@@ -116,26 +146,40 @@ import BN from 'bn.js'
 import { AddressMapper } from 'loom-js/dist/contracts'
 import SectionHeader from '../components/SectionHeader'
 import BalancePanel from '../components/BalancePanel'
-import Modal from '../components/Modal'
+import DepositModal from '../components/DepositModal'
 import ConfirmModal from '../components/ConfirmModal'
 import CompleteModal from '../components/CompleteModal'
+import WithdrawModal from '../components/WithdrawModal'
+import TransferStatus from '../components/TransferStatus'
+import ConfirmWithdraw from '../components/ConfirmWithdraw'
+import ConfirmWithdrawComplete from '../components/ConfirmWithdrawComplete'
 
 export default {
   components: {
     SectionHeader,
     BalancePanel,
-    Modal,
+    DepositModal,
     ConfirmModal,
-    CompleteModal
+    CompleteModal,
+    WithdrawModal,
+    TransferStatus,
+    ConfirmWithdraw,
+    ConfirmWithdrawComplete
   },
   data() {
     return {
       I_WANT_TO: this.$route.query['iWantTo'],
       TOKEN_IMAGE_URL: '',
       weiAmount: null,
-      showModal: false,
+      depositReceipt: null,
+      withdrawReceipt: null,
+      showDepoistModal: false,
       showConfirmModal: false,
       showCompleteModal: false,
+      showWithdrawModal: false,
+      showTransferStatus: false,
+      showConfirmWithdraw: false,
+      showConfirmWithdrawComplete: false,
       user: {},
       tickers: [],
       balances: [],
@@ -190,8 +234,11 @@ export default {
     toggle: function() {
       this.isOpen = !this.isOpen
     },
+    showDeposit: function() {
+      this.showDepoistModal = true
+    },
     onDeposit: function(amount) {
-      this.showModal = false
+      this.showDepoistModal = false
       this.amount = amount
       if (this.amount) {
         this.deposit()
@@ -199,21 +246,36 @@ export default {
     },
     async onConfirm() {
       this.showConfirmModal = false
-      const receipt = await this.ethereumGateway.contract.depositERC20(
+      this.depositReceipt = await this.ethereumGateway.contract.depositERC20(
         this.weiAmount,
         this.ETHEREUM_CONTRACT_ADDR,
         { gasLimit: this.gas }
       )
-      this.putTxHash(receipt.hash, 'ethereum')
+      this.putTxHash(this.depositReceipt.hash, 'ethereum')
       // alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
       this.showCompleteModal = true
     },
     onComplete: function() {
       this.showCompleteModal = false
-      this.depositHash = receipt.hash
+      this.depositHash = this.depositReceipt.hash
     },
-    showDepositModal: function() {
-      this.showModal = true
+    showWithdraw: function() {
+      this.showWithdrawModal = true
+    },
+    onWithdraw: function(amount) {
+      this.showWithdrawModal = false
+      this.amount = amount
+      if (this.amount) {
+        this.withdrawERC20()
+      }
+    },
+    async onConfirmWithdraw() {
+      this.showConfirmWithdraw = false
+      await this._withdrawCoinsFromMainNetGateway(this.withdrawReceipt)
+    },
+    onWithdrawComplete: function() {
+      this.showConfirmWithdrawComplete = false
+      this.withdrawalHash = this.withdrawReceipt.hash
     },
     async putTxHash(hash, network) {
       var webDataUrl =
@@ -773,6 +835,7 @@ export default {
     },
     async resumeWithdrawal() {
       const receipt = await this._getWithdrawalReceipt()
+      // this.withdrawReceipt = await this._getWithdrawalReceipt()
       if (receipt !== undefined) {
         await this._withdrawCoinsFromMainNetGateway(receipt)
       }
@@ -781,16 +844,17 @@ export default {
       this.busy = true
       const amount = this.amount
       //this._approveFee()
-      alert('Please sign the next two prompts to initialize this withdrawal.') //<- Modal 4: Form that allows for integer value input for WITHDRAWAL: "please enter the amount you wish to withdraw then sign the next TWO prompts to approve the transaction."  Input must be integer greater than 0 passed as a string to this.amount
       console.log('Transferring to Loom Gateway.')
       await this._transferCoinsToLoomGateway(amount)
+      this.showTransferStatus = false
       console.log('Getting withdrawal receipt')
-      const receipt = await this._getWithdrawalReceipt()
-      this.putTxHash(receipt.hash, 'loom')
-      alert('Now confirm the next transaction to get your tokens.') //Modal 6
+      this.withdrawReceipt = await this._getWithdrawalReceipt()
+      this.putTxHash(this.withdrawReceipt.hash, 'loom')
+      // alert('Now confirm the next transaction to get your tokens.') //Modal 6
+      this.showConfirmWithdraw = true
       console.log('Withdrawing from MainNet Gateway')
-      await this._withdrawCoinsFromMainNetGateway(receipt)
-      this.withdrawalHash = receipt.hash
+      // await this._withdrawCoinsFromMainNetGateway(receipt)
+      // this.withdrawalHash = receipt.hash
     },
     async _approveFee() {
       const EthCoin = Contracts.EthCoin
@@ -810,9 +874,10 @@ export default {
       })
       console.log(`Tokens withdrawn from MainNet Gateway.`)
       console.log(`Ethereum tx hash: ${tx.hash}`)
-      alert(
-        'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.' //While this.busy status bar here after clcking ok: $TICKER Withdraw Awaiting Confirmation
-      )
+      // alert(
+      //   'Token withdraw request processed. Please allow up to 30 min for tokens to arrive in your account.' //While this.busy status bar here after clcking ok: $TICKER Withdraw Awaiting Confirmation
+      // )
+      this.showConfirmWithdrawComplete = true
     },
     async _getWithdrawalReceipt() {
       const userLocalAddr = Address.fromString(
@@ -877,12 +942,16 @@ export default {
           listener
         )
       })
+      console.log('here')
       await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
-      alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
+      console.log('here1')
+      // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
+      // alert(this.busy)
+      this.showTransferStatus = true
       this.busy = true
       await receiveSignedWithdrawalEvent
     }
@@ -1013,6 +1082,12 @@ export default {
   border-radius: 50%;
   margin: auto;
 }
+
+.portfolio-userimg img:hover {
+  cursor: pointer;
+  opacity: 0.7;
+}
+
 .address-link:hover {
   cursor: pointer;
   text-decoration: underline;

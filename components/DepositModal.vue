@@ -30,6 +30,11 @@
             <slot name="footer">
               <button 
                 class="modal-custom-button" 
+                @click="$emit('closeDeposit')">
+                Close
+              </button>
+              <button 
+                class="modal-custom-button" 
                 @click="$emit('deposit', amount)">
                 Deposit
               </button>
@@ -43,7 +48,7 @@
 
 <script>
 export default {
-  name: 'Modal',
+  name: 'DepositModal',
   props: {
     imageurl: {
       type: String,
@@ -67,13 +72,6 @@ export default {
     setMaxAmount(amount) {
       this.amount = amount
     }
-    // restrictMinus(e) {
-    //   console.log(e)
-    //   let inputKeyCode = e.keyCode ? e.keyCode : e.which
-    //   if (inputKeyCode != null) {
-    //     if (inputKeyCode == 45) e.preventDefault()
-    //   }
-    // }
   }
 }
 </script>
