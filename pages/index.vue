@@ -845,14 +845,14 @@ export default {
       const amount = this.amount
       //this._approveFee()
       console.log('Transferring to Loom Gateway.')
-      await this._transferCoinsToLoomGateway(amount)
+      const res = await this._transferCoinsToLoomGateway(amount)
       this.showTransferStatus = false
       console.log('Getting withdrawal receipt')
       this.withdrawReceipt = await this._getWithdrawalReceipt()
-      this.putTxHash(this.withdrawReceipt.hash, 'loom')
       // alert('Now confirm the next transaction to get your tokens.') //Modal 6
       this.showConfirmWithdraw = true
       console.log('Withdrawing from MainNet Gateway')
+      this.busy = false
       // await this._withdrawCoinsFromMainNetGateway(receipt)
       // this.withdrawalHash = receipt.hash
     },
@@ -942,18 +942,18 @@ export default {
           listener
         )
       })
-      console.log('here')
-      await gatewayContract.withdrawERC20Async(
+      res = await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
-      console.log('here1')
+      console.log(res)
+      this.putTxHash(res.txHash, 'loom')
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
       // alert(this.busy)
       this.showTransferStatus = true
       this.busy = true
-      await receiveSignedWithdrawalEvent
+      return await receiveSignedWithdrawalEvent
     }
   }
 }
