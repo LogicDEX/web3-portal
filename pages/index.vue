@@ -275,6 +275,7 @@ export default {
     },
     onWithdrawComplete: function() {
       this.showConfirmWithdrawComplete = false
+      this.withdrawalHash = this.withdrawReceipt.hash
     },
     async putTxHash(hash, network) {
       var webDataUrl =
@@ -346,6 +347,9 @@ export default {
     },
     async signForeign() {
       this.busy = true
+      if (!this.user.platformHandle) {
+        window.location.reload(true)
+      }
       alert(
         'Hello ' +
           this.user.platformHandle +
@@ -363,16 +367,9 @@ export default {
           value: this.ethereumAddress.slice(2)
         }
       )
-      //console.log(this.ethereumAddress + ' <-- Ethereum Address')
-      //console.log(this.user.dappchainAddress + ' <-- Loom Address')
-      //console.log(hash + ' <-- hash produced from addresses')
-      //console.log('PlasmaEthSigner containing the current Ethereum address:')
-      //console.log(plasmaEthSigner)
       const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
       const signatureString = foreignAccountSig.toString('hex')
-      //sendHexSig(signatureString)
       console.log('Hex Signature passed to backend')
-      //console.log(signatureString)
       await this.sendHexSig(signatureString)
     },
     async manageAccountMapping() {
