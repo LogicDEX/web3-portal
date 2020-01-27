@@ -63,12 +63,12 @@
             @click="showDeposit">
             Deposit
           </button>
-          <button 
+          <!-- <button 
             type="button"
             class="btn btn-success btn-arrow-left"
             @click="resumeWithdrawal">
             ResumeWithdraw
-          </button>
+          </button> -->
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
