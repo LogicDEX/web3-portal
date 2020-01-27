@@ -1,5 +1,5 @@
 <template lang="html">
-  <div>
+  <div v-if="user">
     <div class="user-title">
       <div class="user-title-1">Withdrawal of $VYA & $CRYPTORAVES Tokens Now Available!</div>
       <a 
@@ -120,7 +120,26 @@
       :imagetitle="ticker"
       :stillbusy.sync="busy"
       @withdrawcomplete="onWithdrawComplete"/>
+    <SignForeign
+      v-if="showSignForeign"
+      :username="user.platformHandle"
+      :imageurl="user.imgUrl"
+      @signforeign="onSignForeign"/>      
+    <WaitMappingConfirm
+      v-if="showWaitMappingConfirm"
+      :username="user.platformHandle"
+      :imageurl="user.imgUrl"
+      :stillbusy.sync="busy"
+      @mappingconfirm="onMappingConfirm"/>    
   </div>
+  <div 
+    v-else
+    class="register-wallet">
+    <RegisterWallet
+      v-if="showRegisterWallet"
+      :address="ethereumAddress"
+      @registerwallet="onRegisterWallet"/>
+  </div>      
 </template>
 
 <script>
@@ -153,6 +172,9 @@ import WithdrawModal from '../components/WithdrawModal'
 import TransferStatus from '../components/TransferStatus'
 import ConfirmWithdraw from '../components/ConfirmWithdraw'
 import ConfirmWithdrawComplete from '../components/ConfirmWithdrawComplete'
+import SignForeign from '../components/SignForeign'
+import WaitMappingConfirm from '../components/WaitMappingConfirm'
+import RegisterWallet from '../components/RegisterWallet'
 
 export default {
   components: {
@@ -164,7 +186,10 @@ export default {
     WithdrawModal,
     TransferStatus,
     ConfirmWithdraw,
-    ConfirmWithdrawComplete
+    ConfirmWithdrawComplete,
+    SignForeign,
+    WaitMappingConfirm,
+    RegisterWallet
   },
   data() {
     return {
@@ -180,6 +205,9 @@ export default {
       showTransferStatus: false,
       showConfirmWithdraw: false,
       showConfirmWithdrawComplete: false,
+      showSignForeign: false,
+      showWaitMappingConfirm: false,
+      showRegisterWallet: false,
       user: {},
       tickers: [],
       balances: [],
@@ -276,6 +304,40 @@ export default {
     onWithdrawComplete: function() {
       this.showConfirmWithdrawComplete = false
     },
+    async onSignForeign() {
+      this.showSignForeign = false
+      const signer = getMetamaskSigner(this.web3js.currentProvider)
+      const plasmaEthSigner = new EthersSigner(signer)
+      const hash = soliditySha3(
+        {
+          type: 'address',
+          value: this.user.dappchainAddress.toLowerCase().slice(2)
+        },
+        {
+          type: 'address',
+          value: this.ethereumAddress.slice(2)
+        }
+      )
+      //console.log(this.ethereumAddress + ' <-- Ethereum Address')
+      //console.log(this.user.dappchainAddress + ' <-- Loom Address')
+      //console.log(hash + ' <-- hash produced from addresses')
+      //console.log('PlasmaEthSigner containing the current Ethereum address:')
+      //console.log(plasmaEthSigner)
+      const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
+      const signatureString = foreignAccountSig.toString('hex')
+      //sendHexSig(signatureString)
+      console.log('Hex Signature passed to backend')
+      //console.log(signatureString)
+      await this.sendHexSig(signatureString)
+    },
+    onMappingConfirm: function() {
+      this.showWaitMappingConfirm = false
+      window.location.reload(true)
+    },
+    onRegisterWallet: function() {
+      this.showRegisterWallet = false
+      window.location.reload(true)
+    },
     async putTxHash(hash, network) {
       var webDataUrl =
         'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=putTxHash&txHash=' +
@@ -318,7 +380,6 @@ export default {
             //refresh
             console.log(response.data)
             this.busy = false
-            window.location.reload(true)
           }
         })
         .catch(e => {
@@ -337,6 +398,7 @@ export default {
       axios
         .get(webDataUrl)
         .then(response => {
+          this.showWaitMappingConfirm = true
           console.log(response.data)
           this.confirmLocalMapping()
         })
@@ -346,34 +408,7 @@ export default {
     },
     async signForeign() {
       this.busy = true
-      alert(
-        'Hello ' +
-          this.user.platformHandle +
-          ' This is a one-time setup. Please sign the next prompt to initialize your Mainnet account.'
-      ) //Modal 7
-      const signer = getMetamaskSigner(this.web3js.currentProvider)
-      const plasmaEthSigner = new EthersSigner(signer)
-      const hash = soliditySha3(
-        {
-          type: 'address',
-          value: this.user.dappchainAddress.toLowerCase().slice(2)
-        },
-        {
-          type: 'address',
-          value: this.ethereumAddress.slice(2)
-        }
-      )
-      //console.log(this.ethereumAddress + ' <-- Ethereum Address')
-      //console.log(this.user.dappchainAddress + ' <-- Loom Address')
-      //console.log(hash + ' <-- hash produced from addresses')
-      //console.log('PlasmaEthSigner containing the current Ethereum address:')
-      //console.log(plasmaEthSigner)
-      const foreignAccountSig = await plasmaEthSigner.signAsync(hash)
-      const signatureString = foreignAccountSig.toString('hex')
-      //sendHexSig(signatureString)
-      console.log('Hex Signature passed to backend')
-      //console.log(signatureString)
-      await this.sendHexSig(signatureString)
+      this.showSignForeign = true //Modal 7
     },
     async manageAccountMapping() {
       const client = this.loomClient
@@ -674,10 +709,7 @@ export default {
           // JSON responses are automatically parsed.
           this.user = res.user
           if (!this.user) {
-            alert(
-              "This wallet doesn't appear to be registered with Cryptoraves. \n\nSelect the one that is, or register this one by tweeting: \n\n@cryptoraves #heresmyaddress " +
-                this.ethereumAddress
-            )
+            this.showRegisterWallet = true
             return 0
           }
           this.balances = res.balances
@@ -1189,6 +1221,9 @@ export default {
   text-align: center;
   line-height: 1.2em;
   margin: 50px auto 20px auto;
+}
+.register-wallet {
+  height: calc(100vh - 225px);
 }
 @media only screen and (max-width: 1263px) {
 }
