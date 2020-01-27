@@ -275,7 +275,6 @@ export default {
     },
     onWithdrawComplete: function() {
       this.showConfirmWithdrawComplete = false
-      this.withdrawalHash = this.withdrawReceipt.hash
     },
     async putTxHash(hash, network) {
       var webDataUrl =
@@ -905,7 +904,8 @@ export default {
       )
 
       console.log('Approving Loom Transfer Gateway to take the coins.')
-      await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
+      var res = await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
+      this.putTxHash(res.hash, 'loom')
       const timeout = 60 * 5000
       const loomCoinContractAddress = this.LOOM_CONTRACT_ADDR
       const tokenAddress = Address.fromString(
@@ -945,19 +945,19 @@ export default {
           listener
         )
       })
-      const res = await gatewayContract.withdrawERC20Async(
+      const res1 = await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
       console.log('pending ended')
-      console.log(res)
-      this.putTxHash(res.txHash, 'loom')
+      console.log(res1)
+      this.putTxHash(res1.txHash, 'loom')
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
       // alert(this.busy)
       this.showTransferStatus = true
       this.busy = true
-      return await receiveSignedWithdrawalEvent
+      await receiveSignedWithdrawalEvent
     }
   }
 }
