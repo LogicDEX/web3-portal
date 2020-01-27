@@ -63,12 +63,12 @@
             @click="showDeposit">
             Deposit
           </button>
-          <!-- <button 
+          <button 
             type="button"
             class="btn btn-success btn-arrow-left"
             @click="resumeWithdrawal">
             ResumeWithdraw
-          </button>     -->
+          </button>
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
@@ -251,7 +251,7 @@ export default {
         this.ETHEREUM_CONTRACT_ADDR,
         { gasLimit: this.gas }
       )
-      this.putTxHash(this.depositReceipt.hash, 'ethereum')
+      this.putTxHash(this.depositReceipt.hash, 'deposit')
       // alert('Please wait up to 30min for deposit to complete.') //Modal 3 -- While this.busy add status bar here after clicking ok: $TICKER Deposit Awaiting Confirmation
       this.showCompleteModal = true
     },
@@ -277,20 +277,18 @@ export default {
       this.showConfirmWithdrawComplete = false
       this.withdrawalHash = this.withdrawReceipt.hash
     },
-    async putTxHash(hash, network) {
+    async putTxHash(hash, method) {
       var webDataUrl =
         'https://4mjt8xbsni.execute-api.us-east-1.amazonaws.com/prod?pageType=putTxHash&txHash=' +
         hash +
-        '&network=' +
-        network
+        '&method=' +
+        method
       axios
         .get(webDataUrl)
         .then(response => {
           if (response.data.toLowerCase() == 'Txn Hash Saved 1 None') {
             //refresh
             console.log('Tx Hash Saved')
-            this.busy = false
-            window.location.reload(true)
           }
         })
         .catch(e => {
@@ -902,7 +900,7 @@ export default {
 
       console.log('Approving Loom Transfer Gateway to take the coins.')
       var res = await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
-      this.putTxHash(res.hash, 'loom')
+      this.putTxHash(res.hash, 'withdraw')
       const timeout = 60 * 5000
       const loomCoinContractAddress = this.LOOM_CONTRACT_ADDR
       const tokenAddress = Address.fromString(
@@ -947,10 +945,8 @@ export default {
         tokenAddress,
         ownerMainnetAddr
       )
-      // Note for Bryan : We got res1 = Undefined Value here//
-      console.log('pending ended')
       console.log(res1)
-      this.putTxHash(res1.txHash, 'loom')
+      // Note for Bryan : We got res1 = Undefined Value here//
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
       // alert(this.busy)
       this.showTransferStatus = true
