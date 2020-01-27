@@ -63,12 +63,12 @@
             @click="showDeposit">
             Deposit
           </button>
-          <button 
+          <!-- <button 
             type="button"
             class="btn btn-success btn-arrow-left"
             @click="resumeWithdrawal">
             ResumeWithdraw
-          </button>    
+          </button>     -->
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
@@ -78,7 +78,7 @@
             :balance="ethereumBalance"/>                        
         </div>
       </div>
-      <div class="instruction-link">Step-by-Step Instructions</div>
+      <div class="instruction-link"><nuxt-link to="/stepinstructions">Step-by-Step Instructions</nuxt-link></div>
     </div>
     <DepositModal 
       v-if="showDepoistModal" 
@@ -834,10 +834,13 @@ export default {
       this.showConfirmModal = true
     },
     async resumeWithdrawal() {
-      const receipt = await this._getWithdrawalReceipt()
-      // this.withdrawReceipt = await this._getWithdrawalReceipt()
-      if (receipt !== undefined) {
-        await this._withdrawCoinsFromMainNetGateway(receipt)
+      // const receipt = await this._getWithdrawalReceipt()
+      // if (receipt !== undefined) {
+      //   await this._withdrawCoinsFromMainNetGateway(receipt)
+      // }
+      this.withdrawReceipt = await this._getWithdrawalReceipt()
+      if (this.withdrawReceipt !== undefined) {
+        await this._withdrawCoinsFromMainNetGateway(this.withdrawReceipt)
       }
     },
     async withdrawERC20() {
@@ -942,11 +945,12 @@ export default {
           listener
         )
       })
-      res = await gatewayContract.withdrawERC20Async(
+      const res = await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
+      console.log('pending ended')
       console.log(res)
       this.putTxHash(res.txHash, 'loom')
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
