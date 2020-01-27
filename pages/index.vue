@@ -407,9 +407,6 @@ export default {
     },
     async signForeign() {
       this.busy = true
-      if (!this.user.platformHandle) {
-        window.location.reload(true)
-      }
       this.showSignForeign = true //Modal 7
     },
     async manageAccountMapping() {
