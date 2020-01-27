@@ -900,7 +900,7 @@ export default {
 
       console.log('Approving Loom Transfer Gateway to take the coins.')
       var res = await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
-      this.putTxHash(res.hash, 'withdraw')
+      await this.putTxHash(res.hash, 'withdraw')
       const timeout = 60 * 5000
       const loomCoinContractAddress = this.LOOM_CONTRACT_ADDR
       const tokenAddress = Address.fromString(
