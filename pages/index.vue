@@ -950,6 +950,7 @@ export default {
         tokenAddress,
         ownerMainnetAddr
       )
+      // Note for Bryan : We got res1 = Undefined Value here//
       console.log('pending ended')
       console.log(res1)
       this.putTxHash(res1.txHash, 'loom')
