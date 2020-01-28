@@ -839,23 +839,17 @@ export default {
         this.ethereumAddress,
         { from: this.ethereumAddress }
       )
-      this.ethereumBalance = ethers.utils.formatUnits(
-        ethereumBalance.toString(),
-        this.NUM_DECIMALS
+      this.ethereumBalance = Number(
+        ethers.utils.formatUnits(ethereumBalance.toString(), this.NUM_DECIMALS)
       )
       const loomBalance = await this.loomToken.balanceOf(this.loomWalletAddr)
-      this.loomBalance = ethers.utils.formatUnits(
-        loomBalance.toString(),
-        this.NUM_DECIMALS
+      this.loomBalance = Number(
+        ethers.utils.formatUnits(loomBalance.toString(), this.NUM_DECIMALS)
       )
     },
     async deposit() {
       this.busy = true
-      this.weiAmount = ethers.utils.parseUnits(
-        //this.ethereumBalance,
-        this.amount,
-        this.NUM_DECIMALS
-      )
+      this.weiAmount = ethers.utils.parseUnits(this.amount, this.NUM_DECIMALS)
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
         this.weiAmount.toString(),
