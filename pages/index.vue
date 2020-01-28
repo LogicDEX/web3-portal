@@ -930,7 +930,7 @@ export default {
 
       console.log('Approving Loom Transfer Gateway to take the coins.')
       var res = await this.loomToken.approve(dAppChainGatewayAddr, amountInWei)
-      await this.putTxHash(res.hash, 'withdraw')
+      this.withdrawalHash = res.hash
       const timeout = 60 * 5000
       const loomCoinContractAddress = this.LOOM_CONTRACT_ADDR
       const tokenAddress = Address.fromString(
@@ -970,16 +970,16 @@ export default {
           listener
         )
       })
-      const res1 = await gatewayContract.withdrawERC20Async(
+      await gatewayContract.withdrawERC20Async(
         new BN(amountInWei, 10),
         tokenAddress,
         ownerMainnetAddr
       )
-      console.log(res1)
       // Note for Bryan : We got res1 = Undefined Value here//
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
       // alert(this.busy)
       this.showTransferStatus = true
+      await this.putTxHash(this.withdrawalHash, 'withdraw')
       this.busy = true
       await receiveSignedWithdrawalEvent
     }
