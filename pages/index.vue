@@ -855,13 +855,11 @@ export default {
         this.amount.toString(),
         this.NUM_DECIMALS
       )
-      console.log('here2')
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
         this.weiAmount.toString(),
         { gasLimit: this.gas }
       )
-      console.log('here3')
       this.showConfirmModal = true
     },
     async resumeWithdrawal() {
