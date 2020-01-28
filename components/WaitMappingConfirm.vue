@@ -7,11 +7,11 @@
           <div 
             v-if="stillbusy"           
             class="modal-custom-header">
-            Waiting for Mapping Confirmation...
+            Waiting for Mapping Confirmation... Please Allow 1-2 Minutes.
           </div>
           <div 
             v-else
-            class="modal-custom-header">Address mapping confirmed!</div>            
+            class="modal-custom-header">Address Confirmed. Welcome!</div>            
           <div class="portfolio-userimg">
             <img
               :src="imageurl"
@@ -32,7 +32,7 @@
               <button 
                 class="modal-custom-button" 
                 @click="$emit('mappingconfirm')">
-                Confirm
+                OK
               </button>
             </slot>
           </div>

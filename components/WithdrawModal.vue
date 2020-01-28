@@ -13,7 +13,7 @@
               :title="imagetitle">
           </div>
           <div class="modal-custom-title">{{ imagetitle }} Token</div>          
-          <div class="modal-custom-description">That You Would Like to Withdraw from <br> Cryptoraves into Your Wallet:</div>
+          <div class="modal-custom-description">That You Would Like to Withdraw from <br> Cryptoraves Into Your Wallet:</div>
           <div class="modal-custom-input">
             <div 
               class="modal-custom-input-button"
@@ -24,14 +24,14 @@
               class="modal-custom-input-input"
               placeholder="0">       
           </div>
-          <div class="modal-custom-alert">Then sign the next two prompt to approve.</div>
+          <div class="modal-custom-alert">Then Sign the Next TWO Prompts.</div>
          
           <div class="modal-footer">
             <slot name="footer">
               <button 
                 class="modal-custom-button" 
                 @click="$emit('closeWithdraw')">
-                Close
+                Cancel
               </button>
               <button 
                 class="modal-custom-button" 

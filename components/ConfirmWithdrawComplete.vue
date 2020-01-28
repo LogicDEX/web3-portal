@@ -32,7 +32,7 @@
               <button 
                 class="modal-custom-button" 
                 @click="$emit('withdrawcomplete')">
-                Complete
+                OK
               </button>
             </slot>
           </div>
