@@ -1015,6 +1015,10 @@ export default {
 }
 </script>
 <style scoped>
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed');
+@import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:Bold');
+@import url('https://fonts.googleapis.com/css?family=Montserrat');
+@import url('https://fonts.googleapis.com/css?family=Montserrat:Bold');
 /* Banner */
 .user-title {
   position: absolute;
@@ -1030,7 +1034,7 @@ export default {
   color: rgb(0, 38, 101);
 }
 .user-title-link {
-  font-size: 16px;
+  font-size: 15px;
   color: rgb(0, 38, 101);
   font-family: 'Montserrat';
   text-align: center;
@@ -1041,8 +1045,9 @@ export default {
 .token-list-title {
   margin-top: 40px;
   margin-bottom: 10px;
-  font-size: 2rem;
-  font-family: 'Roboto Condensed';
+  font-size: 24px;
+  font-weight: bold;
+  font-family: 'Montserrat';
   color: rgb(0, 38, 101);
   line-height: 1.6;
   text-align: center;
@@ -1055,10 +1060,12 @@ export default {
   width: 200px;
   height: 40px;
   padding: 0 20px;
-  background: #0085a9;
+  background-color: rgb(2, 49, 124);
   border-radius: 10px;
-  font: 1.25rem/40px 'Ubuntu', Helvetica, Arial, sans-serif;
+  font-family: 'Roboto Condensed';
+  font-size: 20px;
   font-weight: bold;
+  line-height: 40px;
   color: white;
   cursor: pointer;
 }
@@ -1076,7 +1083,7 @@ export default {
   margin-top: 3px;
   left: 0;
   width: 200px;
-  background: #0085a9;
+  background-color: rgb(2, 49, 124);
   color: white;
   border-radius: 10px;
 }
@@ -1084,7 +1091,10 @@ export default {
   cursor: pointer;
   padding: 5px 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-  font: 1.2rem 'Vollkorn', Georgia, Times, serif;
+  font-family: 'Roboto Condensed';
+  font-weight: bold;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 /* Hover state */
@@ -1105,10 +1115,9 @@ export default {
 }
 .portfolio-userwelcome {
   margin-bottom: 10px;
-  font-size: 3rem;
-  font-family: 'Roboto Condensed';
+  font-size: 40px;
+  font-family: 'Montserrat';
   color: rgb(0, 38, 101);
-  font-weight: bold;
   line-height: 1.6;
   text-align: center;
 }
@@ -1156,10 +1165,18 @@ export default {
 }
 
 .btn {
+  font-family: 'Montserrat';
   margin: 30px auto 30px auto;
   width: 150px;
   font-size: 15px;
   font-weight: bold;
+  border: none;
+}
+.btn-danger {
+  background: #9a1bf7;
+}
+.btn-success {
+  background: rgb(18, 220, 66);
 }
 .btn-arrow-right,
 .btn-arrow-left {
@@ -1231,10 +1248,11 @@ export default {
   /* hide arrow tails background */
   background-color: white;
 }
-.instruction-link {
+.instruction-link,
+.instruction-link a {
   cursor: pointer;
   text-decoration: underline;
-  font-size: 16px;
+  font-size: 15px;
   color: rgb(0, 38, 101);
   font-family: 'Montserrat';
   text-align: center;

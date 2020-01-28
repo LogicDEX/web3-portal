@@ -23,9 +23,9 @@ export default {
 .app-footer-title {
   color: white;
   font-size: 2rem;
-  font-family: 'Roboto Condensed';
+  font-family: 'Montserrat';
   font-weight: bold;
   line-height: 1.6;
-  margin: auto;
+  margin: auto auto auto 20px;
 }
 </style>
