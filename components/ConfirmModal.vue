@@ -5,7 +5,7 @@
         <div class="modal-container">
 
           <div class="modal-custom-header">
-            Please Confirm your deposit into your Cryptoraves account
+            Please Confirm the deposit into your Cryptoraves account
           </div>
           <div class="portfolio-userimg">
             <img
@@ -18,7 +18,7 @@
               <button 
                 class="modal-custom-button" 
                 @click="$emit('confirm')">
-                Confirm
+                OK
               </button>
             </slot>
           </div>

@@ -18,7 +18,7 @@
               <button 
                 class="modal-custom-button" 
                 @click="$emit('confirmwithdraw')">
-                Confirm
+                OK
               </button>
             </slot>
           </div>

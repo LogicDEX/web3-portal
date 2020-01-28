@@ -5,18 +5,20 @@
         <div class="modal-container">
           <div 
             class="modal-custom-header">
-            This wallet doesn't appear to be registered with Cryptoraves. 
-            Select the one that is, or register this one by tweeting:
-            <br><br>@cryptoraves #heresmyaddresss            
-            <div class="modal-custom-header-address">{{ address }}</div>
+            This Wallet Doesn't Appear to be Registered with Cryptoraves. 
+            Select the One That is, or Register This One by Tweeting:
+            <br><br>          
+            <div class="modal-custom-header-address">@cryptoraves #heresmyaddress {{ address }}</div>
+            <br><br>
+            Then After You Receive a Tweet Response Refresh This Page.
           </div>  
           <div class="modal-footer">
             <slot name="footer">
-              <button 
+              <!-- <button 
                 class="modal-custom-button" 
                 @click="$emit('registerwallet')">
                 OK
-              </button>
+              </button> -->
             </slot>
           </div>                  
         </div>

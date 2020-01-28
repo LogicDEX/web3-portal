@@ -63,12 +63,12 @@
             @click="showDeposit">
             Deposit
           </button>
-          <!-- <button 
+          <button 
             type="button"
             class="btn btn-success btn-arrow-left"
             @click="resumeWithdrawal">
             ResumeWithdraw
-          </button> -->
+          </button>
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
@@ -233,10 +233,11 @@ export default {
       gas: 350000,
       loomBlockexplorerUrl: null,
       ethBlockexplorerUrl: null,
-      amount: '100',
+      amount: '0',
       withdrawalHash: null,
       depositHash: null,
-      iteration: 0
+      iteration: 0,
+      coinMultiplier: 0
     }
   },
 
@@ -736,6 +737,7 @@ export default {
           this.NUM_DECIMALS = this.balances[i].decimals
           this.TOTAL_SUPPLY = this.balances[i].totalSupply
           this.TOKEN_IMAGE_URL = this.balances[i].tokenImgUrl
+          this.coinMultiplier = new BN(10).pow(new BN(this.NUM_DECIMALS))
           if (this.ready) {
             await this.initContracts()
             await this.updateBalances()
@@ -862,9 +864,13 @@ export default {
       // if (receipt !== undefined) {
       //   await this._withdrawCoinsFromMainNetGateway(receipt)
       // }
-      this.withdrawReceipt = await this._getWithdrawalReceipt()
-      if (this.withdrawReceipt !== undefined) {
-        await this._withdrawCoinsFromMainNetGateway(this.withdrawReceipt)
+      try {
+        this.withdrawReceipt = await this._getWithdrawalReceipt()
+        if (this.withdrawReceipt !== undefined) {
+          await this._withdrawCoinsFromMainNetGateway(this.withdrawReceipt)
+        }
+      } catch (e) {
+        console.log('-- Withdrawal Timeout --')
       }
     },
     async withdrawERC20() {
@@ -873,9 +879,17 @@ export default {
       //this._approveFee()
       console.log('Transferring to Loom Gateway.')
       const res = await this._transferCoinsToLoomGateway(amount)
+      if (res == 'Resume Withdrawal') {
+        return false
+      }
       this.showTransferStatus = false
       console.log('Getting withdrawal receipt')
-      this.withdrawReceipt = await this._getWithdrawalReceipt()
+      try {
+        this.withdrawReceipt = await this._getWithdrawalReceipt()
+      } catch (e) {
+        console.log('-- Delayed Withdrawal? -- ')
+        console.log(e)
+      }
       // alert('Now confirm the next transaction to get your tokens.') //Modal 6
       this.showConfirmWithdraw = true
       console.log('Withdrawing from MainNet Gateway')
@@ -970,15 +984,26 @@ export default {
           listener
         )
       })
-      await gatewayContract.withdrawERC20Async(
-        new BN(amountInWei, 10),
-        tokenAddress,
-        ownerMainnetAddr
-      )
+      try {
+        await gatewayContract.withdrawERC20Async(
+          new BN(amountInWei, 10),
+          tokenAddress,
+          ownerMainnetAddr
+        )
+      } catch (e) {
+        console.log('-- Pending Withdrawal Already Exists --')
+        alert(
+          'The blockchain says hold up.  Please sign the next transaction to unclog it and wait 30 minutes before the next withdraw attempt.'
+        )
+        this.busy = false
+        await this.resumeWithdrawal()
+        return 'Resume Withdrawal'
+      }
       // Note for Bryan : We got res1 = Undefined Value here//
       // alert('Please wait a few minutes for the next prompt.') //Modal 5 -- show a status bar while waiting
       // alert(this.busy)
       this.showTransferStatus = true
+      console.log('Logging withdrawal.')
       await this.putTxHash(this.withdrawalHash, 'withdraw')
       this.busy = true
       await receiveSignedWithdrawalEvent

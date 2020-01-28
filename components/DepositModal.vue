@@ -24,14 +24,14 @@
               class="modal-custom-input-input"
               placeholder="0">       
           </div>
-          <div class="modal-custom-alert">Then sign the next prompt to approve.</div>
+          <div class="modal-custom-alert">Then Sign the Next Prompt.</div>
          
           <div class="modal-footer">
             <slot name="footer">
               <button 
                 class="modal-custom-button" 
                 @click="$emit('closeDeposit')">
-                Close
+                Cancel
               </button>
               <button 
                 class="modal-custom-button" 

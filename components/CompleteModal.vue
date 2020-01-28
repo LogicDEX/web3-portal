@@ -32,7 +32,7 @@
               <button 
                 class="modal-custom-button" 
                 @click="$emit('complete')">
-                Complete
+                OK
               </button>
             </slot>
           </div>
