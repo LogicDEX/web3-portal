@@ -821,7 +821,7 @@ export default {
       this.loomToken.on(loomReceiveFilter, (from, to, value) => {
         this.updateBalances()
         console.log('From: ' + from + ' to: ' + to + ' val: ' + value)
-        console.log(loomReceiveFilter)
+        //console.log(loomReceiveFilter)
         if (this.depositHash) {
           this.busy = false
           this.depositHash = null
