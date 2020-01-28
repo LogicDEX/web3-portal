@@ -38,8 +38,8 @@ img {
 }
 .app-header-title {
   font-size: 3rem;
-  font-family: 'Roboto Condensed';
-  color: #2196f3;
+  font-family: 'Montserrat';
+  color: rgb(42, 192, 236);
   font-weight: bold;
   line-height: 1.6;
 }

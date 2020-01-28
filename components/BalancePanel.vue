@@ -77,17 +77,18 @@ export default {
   height: 100%;
   text-align: center;
   border-radius: 10px;
-  padding: 10px;
+  padding: 20px;
   font-family: 'Montserrat';
   color: rgb(0, 38, 101);
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 1em 1px rgba(0, 133, 169, 0.25);
+  background-color: rgb(246, 250, 251);
 }
 
 .balancepanel-title {
   margin-top: 30px;
-  font-size: 30px;
+  font-size: 25px;
 }
 .balancepanel-image {
   margin: 10px auto 10px auto;
@@ -104,7 +105,7 @@ export default {
   overflow-wrap: break-word;
   width: 100%;
   line-height: 1;
-  font-size: 50px;
+  font-size: 35px;
   margin: 30px auto 30px auto;
 }
 </style>
