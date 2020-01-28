@@ -19,10 +19,10 @@ export default {
 
 <style scoped>
 .video-player {
-  font-size: 50px;
+  font-size: 30px;
   margin: 40px auto 40px auto;
   width: 80%;
-  height: 600px;
+  height: 50vh;
   background-color: grey;
   border-radius: 10px;
 }

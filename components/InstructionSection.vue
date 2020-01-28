@@ -1,6 +1,8 @@
 <template>
   <div class="container">
-    <SectionHeader>Initial Set Up: Hey Cryptoraves, here's My Layer 1 Wallet</SectionHeader>
+    <SectionHeader>
+      <span><slot name="title1"/></span><slot name="title2"/>
+    </SectionHeader>
     <div class="instruction-header">
       <slot name="header"/>      
     </div>
@@ -8,6 +10,7 @@
       <slot name="step1"/>
       <slot name="step2"/>
       <slot name="step3"/>
+      <slot name="step4"/>
     </div>
   </div>
 </template>
@@ -23,8 +26,12 @@ export default {
 </script>
 
 <style scoped>
+span {
+  text-decoration: underline;
+}
 .instruction-header {
   margin-top: 50px;
+  margin-bottom: 30px;
   font-size: 20px;
   font-family: 'Montserrat';
   color: rgb(0, 38, 101);
