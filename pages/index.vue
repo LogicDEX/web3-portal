@@ -63,12 +63,12 @@
             @click="showDeposit">
             Deposit
           </button>
-          <button 
+          <!--<button 
             type="button"
             class="btn btn-success btn-arrow-left"
             @click="resumeWithdrawal">
             ResumeWithdraw
-          </button>
+          </button>-->
         </div>
         <div class="col-lg-4 col-md-12">
           <BalancePanel 
@@ -269,7 +269,7 @@ export default {
     onDeposit: function(amount) {
       this.showDepoistModal = false
       this.amount = amount
-      if (this.amount) {
+      if (this.amount > 0) {
         this.deposit()
       }
     },
@@ -851,12 +851,17 @@ export default {
     },
     async deposit() {
       this.busy = true
-      this.weiAmount = ethers.utils.parseUnits(this.amount, this.NUM_DECIMALS)
+      this.weiAmount = ethers.utils.parseUnits(
+        this.amount.toString(),
+        this.NUM_DECIMALS
+      )
+      console.log('here2')
       var res = await this.ethereumToken.approve(
         this.ethereumGateway.contract.address,
         this.weiAmount.toString(),
         { gasLimit: this.gas }
       )
+      console.log('here3')
       this.showConfirmModal = true
     },
     async resumeWithdrawal() {
@@ -932,7 +937,7 @@ export default {
     },
     async _transferCoinsToLoomGateway(amount) {
       const amountInWei = ethers.utils
-        .parseUnits(amount, this.NUM_DECIMALS)
+        .parseUnits(amount.toString(), this.NUM_DECIMALS)
         .toString()
 
       const ethAddress = this.ethereumAddress
