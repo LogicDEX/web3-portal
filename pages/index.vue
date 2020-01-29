@@ -665,6 +665,7 @@ export default {
           this.ethereumProvider.getSigner()
         )
       } catch (e) {
+        console.log(e)
         window.location.reload(true)
       }
       this.loomToken = new ethers.Contract(
