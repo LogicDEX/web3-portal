@@ -5,7 +5,7 @@
         <div class="modal-container">
           <div             
             class="modal-custom-header">
-            Please wait a few minutes for the next prompt.          
+            Please Wait a Few Minutes for the Next Metamask Prompt.          
           </div>
           <div class="portfolio-userimg">
             <img

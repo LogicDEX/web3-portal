@@ -9,7 +9,7 @@
         </div>
         <div class="d-flex col-sm-12 col-lg-8">
           <div class="app-header-title">
-            Cryptoraves Web3 Portal
+            Cryptoraves Web 3 Portal
           </div>          
         </div>
       </div>

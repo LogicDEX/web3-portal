@@ -24,7 +24,7 @@
               class="modal-custom-input-input"
               placeholder="0">       
           </div>
-          <div class="modal-custom-alert">Then Sign the Next Prompt.</div>
+          <div class="modal-custom-alert">Then Sign the Next Metamask Prompt.</div>
          
           <div class="modal-footer">
             <slot name="footer">
@@ -70,7 +70,7 @@ export default {
   },
   methods: {
     setMaxAmount(amount) {
-      this.amount = amount
+      this.amount = Math.round(amount)
     }
   }
 }

@@ -33,7 +33,7 @@
       {{ address }}
     </div>
     <div class="balancepanel-balance">
-      {{ balance }}
+      {{ Math.round(balance).toLocaleString() }}
     </div>
   </div>  
 </template>
