@@ -11,7 +11,7 @@
           </div>
           <div 
             v-else
-            class="modal-custom-header">{{ imagetitle }} Withdraw Awaiting Confirmation</div>            
+            class="modal-custom-header">{{ imagetitle }} Withdraw Complete! Please Allow A Few Moments for the Blochain to Confirm.</div>            
           <div class="portfolio-userimg">
             <img
               :src="imageurl"
