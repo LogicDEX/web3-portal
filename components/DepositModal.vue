@@ -70,7 +70,7 @@ export default {
   },
   methods: {
     setMaxAmount(amount) {
-      this.amount = amount
+      this.amount = Math.round(amount)
     }
   }
 }

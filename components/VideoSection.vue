@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <SectionHeader>Intro to Cryptoraves Web3 Portal</SectionHeader>
+    <SectionHeader>Intro to Cryptoraves Web 3 Portal</SectionHeader>
     <div class="video-player">
       VIDEO PLACEHOLDER
     </div>

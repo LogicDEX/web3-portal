@@ -26,13 +26,13 @@
   border-radius: 2px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
   transition: all 0.3s ease;
-  font-family: Roboto Condensed;
+  font-family: 'Montserrat';
 }
 
 .modal-custom-header {
   margin-top: 30px;
   text-align: center;
-  color: #e22249;
+  color: #9a1bf7;;
   font-size: 30px;
   font-weight: bold;
 }
@@ -92,9 +92,9 @@
 .modal-custom-input-button {
   text-align: center;
   line-height: 2;
-  color: #002665;
+  color: white;
   font-weight: bold;
-  background-color: #e22249;
+  background-color: #9a1bf7;
   height: 100%;
   width: 50px;
   border-radius: 10px 0px 0px 10px;
@@ -121,11 +121,11 @@
 }
 
 .modal-custom-button {
-  width: 100px;
+  width: 120px;
   height: 40px;
   border-radius: 10px;
   font-size: 20px;
-  background: #e22249;
+  background: #9a1bf7;
   color: white;
   outline: none;
 }
