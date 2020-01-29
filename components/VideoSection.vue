@@ -21,7 +21,7 @@ export default {
 .video-player {
   font-size: 30px;
   margin: 40px auto 40px auto;
-  width: 80%;
+  width: 100%;
   height: 50vh;
   background-color: grey;
   border-radius: 10px;

@@ -11,6 +11,10 @@
       <slot name="step2"/>
       <slot name="step3"/>
       <slot name="step4"/>
+      <slot name="step5"/>
+      <slot name="step6"/>
+      <slot name="step7"/>
+      <slot name="step8"/>
     </div>
   </div>
 </template>
@@ -43,6 +47,6 @@ span {
   font-size: 20px;
   font-family: 'Montserrat';
   color: rgb(0, 38, 101);
-  line-height: 2;
+  line-height: 1.5;
 }
 </style>
