@@ -5,7 +5,7 @@
         <div class="modal-container">
 
           <div class="modal-custom-header">
-            Now confirm the next transaction to get your tokens.
+            Now Confirm the Next Metamask Transaction to Get Your Tokens.
           </div>
           <div class="portfolio-userimg">
             <img

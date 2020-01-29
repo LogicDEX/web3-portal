@@ -7,7 +7,7 @@
           <div 
             v-if="stillbusy"           
             class="modal-custom-header">
-            Please wait up to 30 mins for deposit to complete
+            Please Wait Up to 30 Minutes for Deposit to Complete and Cryptoraves Balance to Update          
           </div>
           <div 
             v-else

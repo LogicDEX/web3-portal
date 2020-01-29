@@ -5,7 +5,7 @@
         <div class="modal-container">
 
           <div class="modal-custom-header">
-            Please Confirm the deposit into your Cryptoraves account
+            Please Confirm the Deposit into your Cryptoraves account With the Next Metamask Popup.
           </div>
           <div class="portfolio-userimg">
             <img

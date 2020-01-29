@@ -6,7 +6,7 @@
 
           <div class="modal-custom-header">
             Hello {{ username }} 
-            <br>This is a one-time setup. Please sign the next prompt to initialize your Mainnet account.
+            <br>This is a One-Time Setup. Please Sign the Next Metamask Prompt to Initialize Your Account.
           </div>          
           <div class="portfolio-userimg">
             <img

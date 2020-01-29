@@ -24,7 +24,7 @@
               class="modal-custom-input-input"
               placeholder="0">       
           </div>
-          <div class="modal-custom-alert">Then Sign the Next TWO Prompts.</div>
+          <div class="modal-custom-alert">Then Sign the Next TWO Metamask Prompts.</div>
          
           <div class="modal-footer">
             <slot name="footer">
