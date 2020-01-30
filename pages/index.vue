@@ -750,7 +750,9 @@ export default {
         })
     },
     async tickerSelect(option) {
-      event.stopPropagation()
+      try {
+        event.stopPropagation()
+      } catch (e) {}
       this.isOpen = false
       this.ticker = option
       for (var i = 0; i < this.tickers.length; i++) {
