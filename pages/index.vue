@@ -982,7 +982,8 @@ export default {
         let timer = setTimeout(
           () =>
             reject(
-              new Error('Timeout while waiting for withdrawal to be signed')
+              new Error('Timeout while waiting for withdrawal to be signed'),
+              this.resumeWithdrawal()
             ),
           timeout
         )

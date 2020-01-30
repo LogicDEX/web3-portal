@@ -12,7 +12,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ withdrawamount }} {{ imagetitle }} Tokens</div>                    
+          <div class="modal-custom-title">{{ Number(withdrawamount) }} {{ imagetitle }} Tokens</div>                    
           <div 
             class="loading-image-container">
             <img 
@@ -38,8 +38,8 @@ export default {
       default: ''
     },
     withdrawamount: {
-      type: Number,
-      default: 0
+      type: String,
+      default: '0'
     }
   }
 }

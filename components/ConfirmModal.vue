@@ -41,8 +41,8 @@ export default {
       default: ''
     },
     depositamount: {
-      type: Number,
-      default: 0
+      type: String,
+      default: '0'
     }
   }
 }

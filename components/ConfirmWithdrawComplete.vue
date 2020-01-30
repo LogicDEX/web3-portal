@@ -17,7 +17,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ withdrawamount }} {{ imagetitle }} Tokens</div>                    
+          <div class="modal-custom-title">{{ Number(withdrawamount) }} {{ imagetitle }} Tokens</div>                    
           <div 
             v-if="stillbusy"
             class="loading-image-container">
@@ -59,8 +59,8 @@ export default {
       default: false
     },
     withdrawamount: {
-      type: Number,
-      default: 0
+      type: String,
+      default: '0'
     }
   }
 }
