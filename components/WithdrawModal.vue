@@ -12,7 +12,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ imagetitle }} Token</div>          
+          <div class="modal-custom-title">{{ imagetitle }} Tokens</div>          
           <div class="modal-custom-description">That You Would Like to Withdraw from <br> Cryptoraves Into Your Wallet:</div>
           <div class="modal-custom-input">
             <div 
@@ -35,20 +35,27 @@
               </button>
               <button 
                 class="modal-custom-button" 
-                @click="$emit('withdraw', amount)">
+                @click="checkValidate">
                 Withdraw
               </button>
             </slot>
           </div>
         </div>
+        <ValidateModal
+          v-if="showValidate"        
+          @validate="resetValidate"/>
       </div>
     </div>
   </transition>
 </template>
 
 <script>
+import ValidateModal from './ValidateModal'
 export default {
   name: 'WithdrawModal',
+  components: {
+    ValidateModal
+  },
   props: {
     imageurl: {
       type: String,
@@ -65,12 +72,24 @@ export default {
   },
   data() {
     return {
-      amount: 0
+      amount: null,
+      showValidate: false
     }
   },
   methods: {
     setMaxAmount(amount) {
       this.amount = amount
+    },
+    checkValidate() {
+      if (this.amount <= 0) {
+        this.showValidate = true
+      } else {
+        this.$emit('withdraw', this.amount)
+      }
+    },
+    resetValidate() {
+      this.showValidate = false
+      this.amount = null
     }
   }
 }

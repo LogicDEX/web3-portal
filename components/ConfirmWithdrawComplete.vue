@@ -17,7 +17,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ imagetitle }} Token</div>                    
+          <div class="modal-custom-title">{{ withdrawamount }} {{ imagetitle }} Tokens</div>                    
           <div 
             v-if="stillbusy"
             class="loading-image-container">
@@ -57,6 +57,10 @@ export default {
     stillbusy: {
       type: Boolean,
       default: false
+    },
+    withdrawamount: {
+      type: Number,
+      default: 0
     }
   }
 }

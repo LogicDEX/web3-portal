@@ -12,7 +12,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ imagetitle }} Token</div>                    
+          <div class="modal-custom-title">{{ depositamount }} {{ imagetitle }} Tokens</div>                    
           <div class="modal-footer">
             <slot name="footer">
               <button 
@@ -39,6 +39,10 @@ export default {
     imagetitle: {
       type: String,
       default: ''
+    },
+    depositamount: {
+      type: Number,
+      default: 0
     }
   }
 }

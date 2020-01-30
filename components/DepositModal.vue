@@ -12,7 +12,7 @@
               :src="imageurl"
               :title="imagetitle">
           </div>
-          <div class="modal-custom-title">{{ imagetitle }} Token</div>          
+          <div class="modal-custom-title">{{ imagetitle }} Tokens</div>          
           <div class="modal-custom-description">That You Would Like to Deposit into Cryptoraves:</div>
           <div class="modal-custom-input">
             <div 
@@ -22,6 +22,7 @@
               v-model="amount"              
               type="number"
               class="modal-custom-input-input"
+              min="1"
               placeholder="0">       
           </div>
           <div class="modal-custom-alert">Then Sign the Next Metamask Prompt.</div>
@@ -35,20 +36,28 @@
               </button>
               <button 
                 class="modal-custom-button" 
-                @click="$emit('deposit', amount)">
+                @click="checkValidate">
+                <!-- @click="$emit('deposit', amount)"> -->
                 Deposit
               </button>
             </slot>
           </div>
         </div>
+        <ValidateModal
+          v-if="showValidate"        
+          @validate="resetValidate"/>
       </div>
     </div>
   </transition>
 </template>
 
 <script>
+import ValidateModal from './ValidateModal'
 export default {
   name: 'DepositModal',
+  components: {
+    ValidateModal
+  },
   props: {
     imageurl: {
       type: String,
@@ -65,12 +74,24 @@ export default {
   },
   data() {
     return {
-      amount: 0
+      amount: null,
+      showValidate: false
     }
   },
   methods: {
     setMaxAmount(amount) {
       this.amount = Math.round(amount)
+    },
+    checkValidate() {
+      if (this.amount <= 0) {
+        this.showValidate = true
+      } else {
+        this.$emit('deposit', this.amount)
+      }
+    },
+    resetValidate() {
+      this.showValidate = false
+      this.amount = null
     }
   }
 }

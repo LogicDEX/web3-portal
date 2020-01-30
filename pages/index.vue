@@ -91,11 +91,13 @@
       v-if="showConfirmModal"
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
+      :depositamount="amount"
       @confirm="onConfirm"/>
     <CompleteModal
       v-if="showCompleteModal"
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
+      :depositamount="amount"
       :stillbusy.sync="busy"
       @complete="onComplete"/>
     <WithdrawModal
@@ -108,18 +110,27 @@
     <TransferStatus 
       v-if="showTransferStatus"    
       :imageurl="TOKEN_IMAGE_URL"
-      :imagetitle="ticker"/>
+      :imagetitle="ticker"
+      :withdrawamount="amount"/>
     <ConfirmWithdraw
       v-if="showConfirmWithdraw"
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
+      :withdrawamount="amount"
       @confirmwithdraw="onConfirmWithdraw"/>
     <ConfirmWithdrawComplete
       v-if="showConfirmWithdrawComplete"
       :imageurl="TOKEN_IMAGE_URL"
       :imagetitle="ticker"
+      :withdrawamount="amount"
       :stillbusy.sync="busy"
       @withdrawcomplete="onWithdrawComplete"/>
+    <StuckModal
+      v-if="showStuckModal"          
+      :imageurl="TOKEN_IMAGE_URL"
+      :imagetitle="ticker"
+      :withdrawamount="amount"
+      @stuck="onStuck"/>
     <SignForeign
       v-if="showSignForeign"
       :username="user.platformHandle"
@@ -130,7 +141,10 @@
       :username="user.platformHandle"
       :imageurl="user.imgUrl"
       :stillbusy.sync="busy"
-      @mappingconfirm="onMappingConfirm"/>    
+      @mappingconfirm="onMappingConfirm"/>
+    <EnableMetaMask
+      v-if="showEnableMetaMask"
+      @metamask="showEnableMetaMask = false"/>
   </div>
   <div 
     v-else
@@ -175,6 +189,8 @@ import ConfirmWithdrawComplete from '../components/ConfirmWithdrawComplete'
 import SignForeign from '../components/SignForeign'
 import WaitMappingConfirm from '../components/WaitMappingConfirm'
 import RegisterWallet from '../components/RegisterWallet'
+import StuckModal from '../components/StuckModal'
+import EnableMetaMask from '../components/EnableMetaMask'
 
 export default {
   components: {
@@ -189,7 +205,9 @@ export default {
     ConfirmWithdrawComplete,
     SignForeign,
     WaitMappingConfirm,
-    RegisterWallet
+    RegisterWallet,
+    StuckModal,
+    EnableMetaMask
   },
   data() {
     return {
@@ -208,6 +226,8 @@ export default {
       showSignForeign: false,
       showWaitMappingConfirm: false,
       showRegisterWallet: false,
+      showStuckModal: false,
+      showEnableMetaMask: false,
       user: {},
       tickers: [],
       balances: [],
@@ -339,6 +359,9 @@ export default {
     onRegisterWallet: function() {
       this.showRegisterWallet = false
       window.location.reload(true)
+    },
+    onStuck: function() {
+      this.showStuckModal = false
     },
     async putTxHash(hash, method) {
       var webDataUrl =
@@ -615,7 +638,8 @@ export default {
         window.web3 = new Web3(window.web3.currentProvider)
         web3js = new Web3(window.web3.currentProvider)
       } else {
-        throw new Error('Please enable Metamask and refresh.')
+        // throw new Error('Please enable Metamask and refresh.')
+        this.showEnableMetaMask = true
       }
 
       if (web3js) {
@@ -998,6 +1022,7 @@ export default {
         alert(
           'The blockchain says hold up.  Please sign the next transaction to unclog it and wait 30 minutes before the next withdraw attempt.'
         )
+        this.showStuckModal = true
         this.busy = false
         await this.resumeWithdrawal()
         return 'Resume Withdrawal'
