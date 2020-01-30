@@ -4,7 +4,8 @@
       <div class="user-title-1">Withdrawal of $VYA & $CRYPTORAVES Tokens Now Available!</div>
       <a 
         class="user-title-link" 
-        href="/">
+        href="https://cryptoraves.space/partnerships?target=withdraw" 
+        target="_blank">
         What about my personalized tokens?</a>
     </div>
     <div class="container">
