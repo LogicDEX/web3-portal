@@ -81,7 +81,7 @@ export default {
       this.amount = amount
     },
     checkValidate() {
-      if (this.amount <= 0) {
+      if (this.amount <= 0 || this.amount > this.maxamount) {
         this.showValidate = true
       } else {
         this.$emit('withdraw', this.amount)

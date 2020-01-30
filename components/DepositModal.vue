@@ -68,8 +68,8 @@ export default {
       default: ''
     },
     maxamount: {
-      type: Number,
-      default: 0
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -80,10 +80,10 @@ export default {
   },
   methods: {
     setMaxAmount(amount) {
-      this.amount = Math.round(amount)
+      this.amount = amount
     },
     checkValidate() {
-      if (this.amount <= 0) {
+      if (this.amount <= 0 || this.amount > this.maxamount) {
         this.showValidate = true
       } else {
         this.$emit('deposit', this.amount)
