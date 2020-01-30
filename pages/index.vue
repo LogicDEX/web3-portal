@@ -1021,9 +1021,9 @@ export default {
         )
       } catch (e) {
         console.log('-- Pending Withdrawal Already Exists --')
-        alert(
+        /*alert(
           'The blockchain says hold up.  Please sign the next transaction to unclog it and wait 30 minutes before the next withdraw attempt.'
-        )
+        )*/
         this.showStuckModal = true
         this.busy = false
         await this.resumeWithdrawal()
