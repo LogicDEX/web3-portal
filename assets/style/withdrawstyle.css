@@ -132,6 +132,15 @@
 .modal-custom-button:hover {
   opacity: 0.7;
 }
+
+.loading-image {
+  margin: auto;
+  width: 150px;
+  height: 150px;
+}
+.loading-image-container {
+  display: flex;
+}
 /*
  * The following styles are auto-applied to elements with
  * transition="modal" when their visibility is toggled
@@ -155,9 +164,47 @@
   transform: scale(1.1);
 }
 
-.loading-image {
-  margin: auto;
+@media only screen and (max-width: 414px) {
+  .modal-container {
+    width: 380px;
+  }
+  .modal-custom-button {
+    width: 80px;
+    height: 30px;
+    font-size: 15px;
+  }
 }
-.loading-image-container {
-  display: flex;
+
+@media only screen and (max-width: 375px) {
+  .modal-container {
+    width: 340px;
+  }
+  .modal-custom-header {    
+    font-size: 20px;
+  }
+  .modal-custom-description {
+    margin: 20px auto 20px auto;
+    font-size: 15px;
+  }
+  .modal-custom-alert {
+    margin: 20px auto 20px auto;
+    font-size: 10px;
+  }
+}
+
+@media only screen and (max-width: 320px) {
+  .modal-container {
+    width: 310px;
+  }
+  .modal-custom-header {    
+    font-size: 20px;
+  }
+  .modal-custom-description {
+    margin: 20px auto 20px auto;
+    font-size: 15px;
+  }
+  .modal-custom-alert {
+    margin: 20px auto 20px auto;
+    font-size: 10px;
+  }
 }
