@@ -138,7 +138,6 @@ export default {
   background-color: white;
   box-shadow: 0 0 1em 1px rgba(0, 0, 0, 0.25);
   width: 100%;
-  padding: 0 2em 2em 2em;
   margin: 2em auto 2em auto;
 }
 </style>

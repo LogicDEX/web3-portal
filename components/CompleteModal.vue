@@ -68,10 +68,4 @@ export default {
 
 <style scoped>
 @import '../assets/style/modalstyle';
-.loading-image {
-  margin: auto;
-}
-.loading-image-container {
-  display: flex;
-}
 </style>
