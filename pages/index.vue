@@ -1049,7 +1049,7 @@ export default {
 /* Banner */
 .user-title {
   position: absolute;
-  margin-top: 20px;
+  margin: 20px;
   right: 10px;
   text-align: center;
 }
@@ -1289,6 +1289,18 @@ export default {
 .register-wallet {
   height: calc(100vh - 225px);
 }
-@media only screen and (max-width: 1263px) {
+@media only screen and (max-width: 991px) {
+  .user-title {
+    position: relative;
+    margin: 20px;
+  }
+  .portfolio-user {
+    margin-top: 20px;
+  }
+}
+@media only screen and (max-width: 404px) {
+  .portfolio-userwelcome {
+    font-size: 30px;
+  }
 }
 </style>

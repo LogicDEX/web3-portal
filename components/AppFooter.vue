@@ -28,4 +28,9 @@ export default {
   line-height: 1.6;
   margin: auto auto auto 20px;
 }
+@media only screen and (max-width: 499px) {
+  .app-footer-title {
+    margin: auto;
+  }
+}
 </style>

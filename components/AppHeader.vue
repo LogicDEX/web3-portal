@@ -37,11 +37,11 @@ img {
   margin: auto;
 }
 .app-header-title {
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-family: 'Montserrat';
   color: rgb(42, 192, 236);
   font-weight: bold;
-  line-height: 1.6;
+  line-height: 2.5;
 }
 
 @media only screen and (max-width: 991px) {
@@ -51,6 +51,13 @@ img {
   .app-header-title,
   .app-header-logo {
     text-align: center;
+  }
+}
+@media only screen and (max-width: 499px) {
+  .app-header-title {
+    margin-top: 2.5rem;
+    font-size: 2rem;
+    line-height: 1;
   }
 }
 </style>
