@@ -5,7 +5,7 @@
         <div class="modal-container">
 
           <div class="modal-custom-header">
-            Amount Entered Must Be Greater Than Zero and Less than Available Balance.
+            Amount Entered Must Be Greater Than Zero and Less than or Equal To Available Balance.
           </div>        
           <div class="modal-footer">
             <slot name="footer">

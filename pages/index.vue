@@ -642,7 +642,29 @@ export default {
         // throw new Error('Please enable Metamask and refresh.')
         this.showEnableMetaMask = true
       }
-
+      var networkId = await web3js.eth.net.getId()
+      if ([1, 4].includes(networkId)) {
+        if (networkId == 4) {
+          //mainnet check for live site
+          if (
+            window.location.toString().includes('://web3.cryptoraves.space/')
+          ) {
+            alert('Please switch Metamask to Main Ethereum Network')
+          }
+        }
+        if (networkId == 1) {
+          //mainnet check for live site
+          if (
+            !window.location.toString().includes('://web3.cryptoraves.space/')
+          ) {
+            alert('Please switch Metamask to Rinkeby Test Network')
+          }
+        }
+      } else {
+        alert(
+          'Please switch Metamask to Rinkeby Test Network or Main Ethereum Network'
+        )
+      }
       if (web3js) {
         this.web3js = web3js
         this.ethereumProvider = new ethers.providers.Web3Provider(
