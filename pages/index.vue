@@ -621,15 +621,6 @@ export default {
       return false
     },
     async initWeb3() {
-      /*if (this.$store.state.LIVE) {
-        if (window.ethereum.networkVersion != 1) {
-          alert('Please switch Metamask to Mainnet')
-        }
-      } else {
-        if (window.ethereum.networkVersion != 4) {
-          alert('Please switch Metamask to Rinkeby Network')
-        }
-      }*/
       let web3js
       if (window.ethereum) {
         window.web3 = new Web3(ethereum)
